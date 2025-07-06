@@ -23,6 +23,7 @@ export default {
       }
     },
     android: {
+      package: "com.manifestationalarm.app",
       adaptiveIcon: {
         foregroundImage: "./assets/images/icons/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -49,36 +50,20 @@ export default {
     },
     notifications: {
       icon: "./assets/images/icons/icon.png",
-      color: "#6366f1",
-      sounds: [
-        "./assets/sounds/Ambient Piano.mp3",
-        "./assets/sounds/Singing Bowl.mp3",
-        "./assets/sounds/Singing Bowl Hit.mp3",
-        "./assets/sounds/Tibetan Bowl Low.mp3",
-        "./assets/sounds/Calm Music.mp3",
-        "./assets/sounds/Relaxing Guitar.mp3"
-      ]
+      color: "#6366f1"
     },
     plugins: [
       [
         "expo-notifications",
         {
           icon: "./assets/images/icons/icon.png",
-          color: "#6366f1",
-          sounds: [
-            "./assets/sounds/Ambient Piano.mp3",
-            "./assets/sounds/Singing Bowl.mp3",
-            "./assets/sounds/Singing Bowl Hit.mp3",
-            "./assets/sounds/Tibetan Bowl Low.mp3",
-            "./assets/sounds/Calm Music.mp3",
-            "./assets/sounds/Relaxing Guitar.mp3"
-          ]
+          color: "#6366f1"
         }
       ]
     ],
     extra: {
       eas: {
-        projectId: process.env.EXPO_PROJECT_ID || "b8c4a2d6-9f3e-4a7b-8c1d-5e2f3a9b7c4d"
+        projectId: "e9487115-fde1-4108-b8c4-7e17329fee7c"
       }
     }
   }

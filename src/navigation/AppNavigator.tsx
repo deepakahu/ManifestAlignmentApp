@@ -7,10 +7,10 @@ import * as Linking from 'expo-linking';
 import {Platform} from 'react-native';
 import {AlarmService} from '../services/AlarmService';
 
-// Conditionally import NotificationService
+// Import NotificationService (available on mobile platforms)
 let NotificationService: any = null;
 try {
-  if (__DEV__ || Platform.OS !== 'web') {
+  if (Platform.OS !== 'web') {
     NotificationService = require('../services/notifications/NotificationService').NotificationService;
   }
 } catch (error) {
@@ -42,13 +42,13 @@ const TabNavigator = () => {
           let iconName: keyof typeof Ionicons.glyphMap;
 
           if (route.name === 'Home') {
-            iconName = 'home';
+            iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'MoodTracking') {
-            iconName = 'happy';
+            iconName = focused ? 'happy' : 'happy-outline';
           } else if (route.name === 'Manifestation') {
-            iconName = 'star';
+            iconName = focused ? 'sparkles' : 'sparkles-outline';
           } else if (route.name === 'Profile') {
-            iconName = 'person';
+            iconName = focused ? 'person' : 'person-outline';
           } else {
             iconName = 'home';
           }
@@ -103,7 +103,7 @@ const AppNavigator = () => {
 
   useEffect(() => {
     // Initialize services with navigation reference
-    if (NotificationService && !__DEV__) {
+    if (NotificationService) {
       NotificationService.initialize(navigationRef);
     }
     AlarmService.initialize();

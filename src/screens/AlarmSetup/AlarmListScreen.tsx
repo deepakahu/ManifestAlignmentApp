@@ -158,7 +158,7 @@ const AlarmListScreen = () => {
           onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.title}>Mood Alarms</Text>
+        <Text style={styles.title}>Manifestation Alarms</Text>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate('AlarmSetup')}>

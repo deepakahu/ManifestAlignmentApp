@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 12.1.0"
+    "version": ">= 12.1.0",
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -27,7 +28,8 @@
         "resourceClass": "m-medium"
       },
       "android": {
-        "resourceClass": "medium"
+        "resourceClass": "medium",
+        "buildType": "app-bundle"
       }
     }
   },

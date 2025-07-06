@@ -58,8 +58,7 @@ export class NotificationService {
       
       try {
         const projectId = Constants.expoConfig?.extra?.eas?.projectId || 
-                         Constants.easConfig?.projectId || 
-                         'b8c4a2d6-9f3e-4a7b-8c1d-5e2f3a9b7c4d';
+                         Constants.easConfig?.projectId;
         
         token = await Notifications.getExpoPushTokenAsync({
           projectId,
@@ -133,7 +132,7 @@ export class NotificationService {
           data,
           sound: 'default',
         },
-        trigger: trigger instanceof Date ? { type: 'date', date: trigger } : { type: 'timeInterval', seconds: trigger },
+        trigger: trigger instanceof Date ? { date: trigger } : { seconds: trigger },
       });
       
       return notificationId;
@@ -212,7 +211,7 @@ export class NotificationService {
           data,
           sound: getSoundForType(soundType),
         },
-        trigger: { type: 'date', date: triggerDate },
+        trigger: { date: triggerDate },
       });
       
       return notificationId;

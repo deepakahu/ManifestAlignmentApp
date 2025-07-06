@@ -583,6 +583,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     fontSize: 16,
+    color: '#111827',
   },
   pickerButton: {
     flexDirection: 'row',
@@ -724,6 +725,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     fontSize: 16,
     textAlign: 'center',
+    color: '#111827',
   },
   soundList: {
     maxHeight: 300,

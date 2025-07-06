@@ -238,8 +238,10 @@ const MoodTrackingScreen = () => {
           <TouchableOpacity
             style={styles.viewFullTrendsButton}
             onPress={() => {
+              console.log('Trends button pressed'); // Debug log
               setShowTrendsModal(true);
             }}
+            activeOpacity={0.7}
           >
             <Text style={styles.viewFullTrendsText}>View Details</Text>
             <Ionicons name="chevron-forward" size={16} color="#6366f1" />
@@ -252,8 +254,6 @@ const MoodTrackingScreen = () => {
             width={width - 60}
             height={120}
             yAxisInterval={1}
-            yAxisMin={1}
-            yAxisMax={5}
             chartConfig={{
               backgroundColor: '#ffffff',
               backgroundGradientFrom: '#ffffff',
@@ -333,8 +333,6 @@ const MoodTrackingScreen = () => {
                   width={width - 80}
                   height={220}
                   yAxisInterval={1}
-                  yAxisMin={1}
-                  yAxisMax={5}
                   chartConfig={{
                     backgroundColor: '#ffffff',
                     backgroundGradientFrom: '#ffffff',
@@ -900,6 +898,10 @@ const styles = StyleSheet.create({
   viewFullTrendsButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 8,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
   },
   viewFullTrendsText: {
     color: '#6366f1',

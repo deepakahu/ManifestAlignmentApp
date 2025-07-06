@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Animated, PanResponder, Dimensions} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Animated, PanResponder, Dimensions, Image} from 'react-native';
 import {useApp} from '../../context/AppContext';
 import {Ionicons} from '@expo/vector-icons';
 import {AlarmService} from '../../services/AlarmService';
 import {Alarm} from '../../types';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -16,6 +17,13 @@ const HomeScreen = ({navigation}: any) => {
   useEffect(() => {
     loadAlarms();
   }, []);
+
+  // Refresh alarms when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadAlarms();
+    }, [])
+  );
 
   const loadAlarms = async () => {
     try {
@@ -214,7 +222,13 @@ const HomeScreen = ({navigation}: any) => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Dashboard</Text>
+        <View style={styles.logoContainer}>
+          <Image 
+            source={require('../../../assets/images/icons/manifestation-alarm-180.png')} 
+            style={styles.logoImage}
+          />
+          <Text style={styles.headerTitle}>Manifestation Alarm</Text>
+        </View>
         <TouchableOpacity 
           style={styles.settingsButton}
           onPress={() => navigation.navigate('Settings')}
@@ -422,6 +436,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoImage: {
+    width: 40,
+    height: 40,
+    marginRight: 12,
   },
   headerTitle: {
     fontSize: 28,

@@ -5,7 +5,7 @@ import {Ionicons} from '@expo/vector-icons';
 const ProfileScreen = ({navigation}: any) => {
   const menuItems = [
     {
-      title: 'Mood Alarms',
+      title: 'Manifestation Alarms',
       icon: 'alarm',
       onPress: () => navigation.navigate('AlarmList'),
     },
