@@ -6,12 +6,12 @@ export default {
     slug: "manifestation-alarm",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/icon.png",
+    icon: "./assets/images/icons/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: false,
     scheme: "manifestationalarm",
     splash: {
-      image: "./assets/splash-icon.png",
+      image: "./assets/images/splash/splash-icon.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },
@@ -24,7 +24,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
+        foregroundImage: "./assets/images/icons/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
       permissions: [
@@ -45,10 +45,10 @@ export default {
       ]
     },
     web: {
-      favicon: "./assets/favicon.png"
+      favicon: "./assets/images/icons/favicon.png"
     },
     notifications: {
-      icon: "./assets/icon.png",
+      icon: "./assets/images/icons/icon.png",
       color: "#6366f1",
       sounds: [
         "./assets/sounds/Ambient Piano.mp3",
@@ -63,7 +63,7 @@ export default {
       [
         "expo-notifications",
         {
-          icon: "./assets/icon.png",
+          icon: "./assets/images/icons/icon.png",
           color: "#6366f1",
           sounds: [
             "./assets/sounds/Ambient Piano.mp3",

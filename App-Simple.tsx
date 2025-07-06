@@ -13,7 +13,7 @@ const HomeScreen = () => {
     <ScrollView style={styles.container}>
       <StatusBar style="auto" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Manifest Alignment</Text>
+        <Text style={styles.headerTitle}>Manifestation Alarm</Text>
       </View>
       <View style={styles.content}>
         <Text style={styles.welcomeText}>Welcome to your mindfulness journey!</Text>

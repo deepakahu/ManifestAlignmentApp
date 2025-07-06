@@ -148,7 +148,7 @@ const SettingsScreen = () => {
               <Ionicons name="sparkles" size={20} color="#6366f1" />
             </View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Manifestation Alignment App</Text>
+              <Text style={styles.settingLabel}>Manifestation Alarm</Text>
               <Text style={styles.settingDescription}>
                 Track your mood and align with your manifestations
               </Text>

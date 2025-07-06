@@ -62,7 +62,7 @@ describe('SettingsScreen', () => {
     expect(screen.getByText('About')).toBeTruthy();
     expect(screen.getByText('Version')).toBeTruthy();
     expect(screen.getByText('1.0.0')).toBeTruthy();
-    expect(screen.getByText('Manifestation Alignment App')).toBeTruthy();
+    expect(screen.getByText('Manifestation Alarm')).toBeTruthy();
   });
 
   it('displays export data button', () => {

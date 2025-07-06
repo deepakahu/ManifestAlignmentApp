@@ -1,4 +1,4 @@
-# Manifestation Alignment App - Testing Guide
+# Manifestation Alarm - Testing Guide
 
 ## 🎯 Complete App Flow Testing
 
