@@ -2,14 +2,14 @@ import 'dotenv/config';
 
 export default {
   expo: {
-    name: "ManifestExpo",
-    slug: "ManifestExpo",
+    name: "Manifestation Alarm",
+    slug: "manifestation-alarm",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: false,
-    scheme: "manifestexpo",
+    scheme: "manifestationalarm",
     splash: {
       image: "./assets/splash-icon.png",
       resizeMode: "contain",
@@ -37,7 +37,7 @@ export default {
           action: "VIEW",
           data: [
             {
-              scheme: "manifestexpo"
+              scheme: "manifestationalarm"
             }
           ],
           category: ["BROWSABLE", "DEFAULT"]

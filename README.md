@@ -1,6 +1,6 @@
-# Manifestation Alignment App
+# Manifestation Alarm
 
-A comprehensive React Native application for mood tracking, manifestation practice, and personal development with an innovative 30-day trial system and freemium model.
+A comprehensive React Native application combining mindful alarms with mood tracking, manifestation practice, and personal development featuring an innovative 30-day trial system and freemium model.
 
 ## 🌟 Features
 
@@ -75,7 +75,7 @@ ManifestExpo/
 1. **Clone the repository**
    ```bash
    git clone [repository-url]
-   cd ManifestAlignmentApp/ManifestExpo
+   cd ManifestationAlarm
    ```
 
 2. **Install dependencies**
@@ -344,4 +344,6 @@ For support and questions:
 
 ---
 
-**Built with ❤️ using React Native and Expo**
+**Manifestation Alarm - Mindful Alarms for Manifestation & Mood Tracking**
+
+Built with ❤️ using React Native and Expo

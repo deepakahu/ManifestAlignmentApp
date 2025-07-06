@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Manifest Alignment",
-    "slug": "manifest-alignment",
+    "name": "Manifestation Alarm",
+    "slug": "manifestation-alarm",
     "version": "1.0.0",
     "orientation": "portrait",
     "sdkVersion": "53.0.0",
@@ -15,14 +15,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.deepakahu.manifestalignment",
+      "bundleIdentifier": "com.maximus.manifestationalarm",
       "infoPlist": {
         "UIBackgroundModes": ["audio", "background-fetch"],
         "NSUserNotificationUsageDescription": "This app uses notifications to remind you to track your mood and practice manifestations."
       }
     },
     "android": {
-      "package": "com.deepakahu.manifestalignment",
+      "package": "com.maximus.manifestationalarm",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

@@ -11,13 +11,13 @@ module.exports = {
   apps: {
     'ios.debug': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/ManifestAlignmentApp.app',
-      build: 'xcodebuild -workspace ios/ManifestAlignmentApp.xcworkspace -scheme ManifestAlignmentApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build'
+      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/ManifestationAlarm.app',
+      build: 'xcodebuild -workspace ios/ManifestationAlarm.xcworkspace -scheme ManifestationAlarm -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build'
     },
     'ios.release': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/ManifestAlignmentApp.app',
-      build: 'xcodebuild -workspace ios/ManifestAlignmentApp.xcworkspace -scheme ManifestAlignmentApp -configuration Release -sdk iphonesimulator -derivedDataPath ios/build'
+      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/ManifestationAlarm.app',
+      build: 'xcodebuild -workspace ios/ManifestationAlarm.xcworkspace -scheme ManifestationAlarm -configuration Release -sdk iphonesimulator -derivedDataPath ios/build'
     },
     'android.debug': {
       type: 'android.apk',
