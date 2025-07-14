@@ -418,6 +418,25 @@ const HomeScreen = ({navigation}: any) => {
           </View>
         </View>
       )}
+
+      {/* Manifestation Alarm Info - Moved from Settings */}
+      <View style={styles.manifestationAlarmContainer}>
+        <TouchableOpacity 
+          style={styles.manifestationAlarmButton}
+          onPress={() => navigation.navigate('AlarmList')}
+        >
+          <View style={styles.manifestationAlarmIcon}>
+            <Ionicons name="sparkles" size={24} color="#6366f1" />
+          </View>
+          <View style={styles.manifestationAlarmContent}>
+            <Text style={styles.manifestationAlarmTitle}>Manifestation Alarms</Text>
+            <Text style={styles.manifestationAlarmDescription}>
+              Track your mood and align with your manifestations
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -764,6 +783,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9ca3af',
     fontStyle: 'italic',
+  },
+  manifestationAlarmContainer: {
+    margin: 20,
+    marginTop: 20,
+  },
+  manifestationAlarmButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  manifestationAlarmIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f0f9ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  manifestationAlarmContent: {
+    flex: 1,
+  },
+  manifestationAlarmTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  manifestationAlarmDescription: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
   },
 });
 

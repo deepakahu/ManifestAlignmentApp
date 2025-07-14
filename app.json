@@ -2,7 +2,7 @@
   "expo": {
     "name": "Manifestation Alarm",
     "slug": "manifestation-alarm",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "sdkVersion": "53.0.0",
     "icon": "./assets/images/icons/manifestation-alarm-1024.png",

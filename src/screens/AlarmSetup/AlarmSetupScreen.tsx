@@ -223,17 +223,66 @@ const AlarmSetupScreen = () => {
     try {
       const success = await AlarmService.saveAlarm(alarmData);
       if (success) {
-        Alert.alert(
-          'Success',
-          `Alarm "${alarmName}" ${isEditing ? 'updated' : 'created'} successfully!`,
-          [{text: 'OK', onPress: () => navigation.goBack()}]
-        );
+        // Navigate directly to AlarmList to avoid stale data issues
+        navigation.navigate('AlarmList');
       } else {
         Alert.alert('Error', 'Failed to save alarm. Please try again.');
       }
     } catch (error) {
       console.error('Error saving alarm:', error);
       Alert.alert('Error', 'Failed to save alarm. Please try again.');
+    }
+  };
+
+  const deleteAlarm = async () => {
+    if (!isEditing || !editingAlarm) return;
+
+    const confirmDelete = () => {
+      return new Promise<boolean>((resolve) => {
+        // Check if we're in a web environment
+        const isWeb = typeof window !== 'undefined' && window.confirm;
+        
+        if (isWeb) {
+          const confirmed = window.confirm(`Are you sure you want to delete the alarm "${alarmName}"? This action cannot be undone.`);
+          resolve(confirmed);
+        } else {
+          Alert.alert(
+            'Delete Alarm',
+            `Are you sure you want to delete the alarm "${alarmName}"? This action cannot be undone.`,
+            [
+              { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'Delete', style: 'destructive', onPress: () => resolve(true) }
+            ]
+          );
+        }
+      });
+    };
+
+    try {
+      const confirmed = await confirmDelete();
+      if (!confirmed) return;
+
+      const success = await AlarmService.deleteAlarm(editingAlarm.id);
+      if (success) {
+        // Reset navigation to alarm list to prevent going back to deleted alarm
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'AlarmList' }],
+        });
+      } else {
+        if (typeof window !== 'undefined' && window.alert) {
+          window.alert('Failed to delete alarm. Please try again.');
+        } else {
+          Alert.alert('Error', 'Failed to delete alarm. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting alarm:', error);
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert('Failed to delete alarm. Please try again.');
+      } else {
+        Alert.alert('Error', 'Failed to delete alarm. Please try again.');
+      }
     }
   };
 
@@ -412,6 +461,14 @@ const AlarmSetupScreen = () => {
             {isEditing ? 'Update Alarm' : 'Create Alarm'}
           </Text>
         </TouchableOpacity>
+
+        {/* Delete Button - Only show when editing */}
+        {isEditing && (
+          <TouchableOpacity style={styles.deleteButton} onPress={deleteAlarm}>
+            <Ionicons name="trash" size={20} color="#dc2626" />
+            <Text style={styles.deleteButtonText}>Delete Alarm</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Interval Picker Modal */}
@@ -677,6 +734,23 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dc2626',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  deleteButtonText: {
+    color: '#dc2626',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

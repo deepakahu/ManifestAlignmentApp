@@ -143,17 +143,6 @@ const SettingsScreen = () => {
             </View>
           </View>
 
-          <View style={styles.settingItem}>
-            <View style={styles.settingIcon}>
-              <Ionicons name="sparkles" size={20} color="#6366f1" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Manifestation Alarm</Text>
-              <Text style={styles.settingDescription}>
-                Track your mood and align with your manifestations
-              </Text>
-            </View>
-          </View>
         </View>
       </View>
     </ScrollView>

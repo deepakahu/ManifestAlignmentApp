@@ -11,11 +11,17 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../context/AppContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ManifestationEntry } from '../../types';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ManifestationEntry, RootStackParamList } from '../../types';
+
+type ManifestationCreateScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'ManifestationCreate'
+>;
 
 const ManifestationCreateScreen = () => {
-  const { saveManifestationEntry, updateManifestationEntry, state } = useApp();
-  const navigation = useNavigation();
+  const { saveManifestationEntry, updateManifestationEntry, deleteManifestationEntry, state } = useApp();
+  const navigation = useNavigation<ManifestationCreateScreenNavigationProp>();
   const route = useRoute();
   
   // Check if we're editing an existing manifestation
@@ -41,24 +47,30 @@ const ManifestationCreateScreen = () => {
   const categories = ['Personal', 'Career', 'Health', 'Relationships', 'Financial', 'Spiritual'];
 
   const handleSave = async () => {
+    // Prevent multiple saves
+    if (isLoading) {
+      console.log('Save already in progress, ignoring duplicate call');
+      return;
+    }
+
     if (!title.trim()) {
       Alert.alert('Title Required', 'Please enter a title for your manifestation');
       return;
     }
-
-
+    
+    console.log('Starting save process...', { isEditing, existingManifestation: !!existingManifestation });
     setIsLoading(true);
     
     try {
       if (isEditing && existingManifestation) {
-        // Update existing manifestation
+        console.log('Updating existing manifestation:', existingManifestation.id);
         await updateManifestationEntry(existingManifestation.id, {
           title: title.trim(),
           description: description.trim(),
           category,
         });
       } else {
-        // Create new manifestation
+        console.log('Creating new manifestation');
         await saveManifestationEntry({
           title: title.trim(),
           description: description.trim(),
@@ -67,39 +79,141 @@ const ManifestationCreateScreen = () => {
           visualizationNotes: '',
           affirmations: [],
         });
-        
       }
 
-      const message = isEditing 
-        ? 'Your manifestation has been updated!' 
-        : 'Your manifestation has been created!';
-      
-      Alert.alert('Success', message, [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
-        },
-      ]);
+      console.log('Save successful, navigating back...');
+      setIsLoading(false);
+
+      // Navigate directly to manifestation list, skipping any detail screens
+      try {
+        console.log('Navigating directly to Manifestation tab to avoid stale detail screen');
+        navigation.navigate('MainTabs', { screen: 'Manifestation' } as any);
+      } catch (navError) {
+        console.error('Navigation error:', navError);
+        console.log('Using navigation reset as fallback');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' }],
+        });
+      }
+
     } catch (error) {
       console.error('Error saving manifestation:', error);
-      Alert.alert('Error', 'Failed to save your manifestation. Please try again.');
-    } finally {
       setIsLoading(false);
+      Alert.alert('Error', 'Failed to save your manifestation. Please try again.');
     }
   };
 
   const handleCancel = () => {
+    const navigateBack = () => {
+      try {
+        // When cancelling from edit screen, we can go back to detail screen
+        // since we didn't make any changes
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          navigation.navigate('MainTabs', { screen: 'Manifestation' } as any);
+        }
+      } catch (error) {
+        console.error('Navigation error:', error);
+        // Fallback navigation
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' }],
+        });
+      }
+    };
+
     if (title.trim() || description.trim()) {
       Alert.alert(
         'Discard Changes',
         'Are you sure you want to discard your changes?',
         [
           { text: 'Keep Editing', style: 'cancel' },
-          { text: 'Discard', onPress: () => navigation.goBack() },
+          { text: 'Discard', onPress: navigateBack },
         ]
       );
     } else {
-      navigation.goBack();
+      navigateBack();
+    }
+  };
+
+  const handleDelete = () => {
+    if (!isEditing || !existingManifestation) {
+      console.log('Delete blocked: isEditing=', isEditing, 'existingManifestation=', !!existingManifestation);
+      return;
+    }
+    
+    console.log('Starting delete process for manifestation:', existingManifestation.id);
+    
+    // Check if we're in a web environment and handle accordingly
+    const isWeb = typeof window !== 'undefined' && window.confirm;
+    
+    if (isWeb) {
+      console.log('Using web confirm dialog');
+      const confirmed = window.confirm('Are you sure you want to delete this manifestation? This action cannot be undone.');
+      if (confirmed) {
+        console.log('User confirmed delete via web confirm');
+        performDelete();
+      } else {
+        console.log('User cancelled delete via web confirm');
+      }
+    } else {
+      console.log('Using React Native Alert.alert');
+      Alert.alert(
+        'Delete Manifestation',
+        'Are you sure you want to delete this manifestation? This action cannot be undone.',
+        [
+          { 
+            text: 'Cancel', 
+            style: 'cancel',
+            onPress: () => console.log('User cancelled delete via Alert')
+          },
+          { 
+            text: 'Delete', 
+            style: 'destructive',
+            onPress: () => {
+              console.log('User confirmed delete via Alert');
+              performDelete();
+            }
+          },
+        ]
+      );
+    }
+  };
+
+  const performDelete = async () => {
+    try {
+      console.log('User confirmed delete, starting deletion...');
+      setIsLoading(true);
+      
+      console.log('Calling deleteManifestationEntry with id:', existingManifestation!.id);
+      await deleteManifestationEntry(existingManifestation!.id);
+      console.log('Delete successful, navigating back...');
+      
+      // Navigate immediately after successful deletion
+      setIsLoading(false);
+      
+      try {
+        console.log('Navigating directly to Manifestation tab to avoid stale detail screen');
+        navigation.navigate('MainTabs', { screen: 'Manifestation' } as any);
+      } catch (navError) {
+        console.error('Navigation error:', navError);
+        console.log('Using navigation reset as fallback');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' }],
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error deleting manifestation:', error);
+      setIsLoading(false);
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert('Failed to delete your manifestation. Please try again.');
+      } else {
+        Alert.alert('Error', 'Failed to delete your manifestation. Please try again.');
+      }
     }
   };
 
@@ -193,9 +307,21 @@ const ManifestationCreateScreen = () => {
               Be specific and write in present tense as if it's already happening.
             </Text>
           </View>
+
+          {isEditing && (
+            <TouchableOpacity 
+              style={[styles.deleteButton, isLoading && styles.deleteButtonDisabled]} 
+              onPress={handleDelete}
+              disabled={isLoading}
+            >
+              <Ionicons name="trash" size={20} color={isLoading ? "#9ca3af" : "#dc2626"} />
+              <Text style={[styles.deleteButtonText, isLoading && styles.deleteButtonTextDisabled]}>
+                {isLoading ? 'Deleting...' : 'Delete Manifestation'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
-
     </View>
   );
 };
@@ -326,6 +452,30 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dc2626',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 24,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    color: '#dc2626',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  deleteButtonDisabled: {
+    backgroundColor: '#f9fafb',
+    borderColor: '#d1d5db',
+  },
+  deleteButtonTextDisabled: {
+    color: '#9ca3af',
   },
 });
 
