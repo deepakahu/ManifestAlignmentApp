@@ -16,11 +16,13 @@ export default {
       backgroundColor: "#ffffff"
     },
     ios: {
+      bundleIdentifier: 'com.manifestationalarm.app',
       supportsTablet: true,
       infoPlist: {
-        UIBackgroundModes: ["audio", "background-fetch"],
-        NSUserNotificationUsageDescription: "This app uses notifications to remind you to track your mood and practice manifestations."
-      }
+        UIBackgroundModes: ['audio', 'background-fetch'],
+        NSUserNotificationUsageDescription:
+          'This app uses notifications to remind you to track your mood and practice manifestations.',
+      },
     },
     android: {
       package: "com.manifestationalarm.app",
