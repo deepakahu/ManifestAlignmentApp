@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Manifestation Alarm",
     slug: "manifestation-alarm",
-    version: "1.0.0",
+    version: "1.0.1",
     orientation: "portrait",
     icon: "./assets/images/icons/icon.png",
     userInterfaceStyle: "light",
@@ -26,6 +26,8 @@ export default {
     },
     android: {
       package: "com.manifestationalarm.app",
+      edgeToEdge: true,
+      versionCode: 2, 
       adaptiveIcon: {
         foregroundImage: "./assets/images/icons/adaptive-icon.png",
         backgroundColor: "#ffffff"
