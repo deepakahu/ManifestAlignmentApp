@@ -4,14 +4,15 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import {Platform} from 'react-native';
 
-// Configure notification handler
+// Configure notification handler for both iOS and Android
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
-    shouldSetBadge: false,
+    shouldSetBadge: true, // Enable badge for iOS
     shouldShowBanner: true,
     shouldShowList: true,
+    priority: Platform.OS === 'android' ? Notifications.AndroidNotificationPriority.MAX : undefined,
   }),
 });
 
@@ -22,10 +23,33 @@ export class NotificationService {
     this.navigationRef = navigationRef;
     
     try {
+      await this.setupNotificationCategories();
       await this.registerForPushNotificationsAsync();
       this.setupNotificationListeners();
     } catch (error) {
       console.error('Error initializing notifications:', error);
+    }
+  }
+  
+  private static async setupNotificationCategories(): Promise<void> {
+    // Setup iOS notification categories for better handling
+    if (Platform.OS === 'ios') {
+      await Notifications.setNotificationCategoryAsync('mood-reminder', [
+        {
+          identifier: 'open-app',
+          buttonTitle: 'Track Mood',
+          options: {
+            opensAppToForeground: true,
+          },
+        },
+        {
+          identifier: 'dismiss',
+          buttonTitle: 'Dismiss',
+          options: {
+            opensAppToForeground: false,
+          },
+        },
+      ]);
     }
   }
 
@@ -50,7 +74,17 @@ export class NotificationService {
       let finalStatus = existingStatus;
       
       if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
+        // Request all notification permissions for iOS and Android
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+            allowAnnouncements: true,
+            allowCriticalAlerts: false,
+          },
+          android: {},
+        });
         finalStatus = status;
       }
       
@@ -128,14 +162,30 @@ export class NotificationService {
     trigger: Date | number
   ): Promise<string> {
     try {
+      const content: any = {
+        title,
+        body,
+        data,
+        sound: 'default',
+      };
+      
+      // Add platform-specific content
+      if (Platform.OS === 'ios') {
+        content.badge = 1;
+      } else if (Platform.OS === 'android') {
+        content.priority = Notifications.AndroidNotificationPriority.HIGH;
+      }
+      
+      const triggerConfig: any = trigger instanceof Date ? { date: trigger } : { seconds: trigger };
+      
+      // Add Android channel if needed
+      if (Platform.OS === 'android' && trigger instanceof Date) {
+        triggerConfig.channelId = 'mood-reminders';
+      }
+      
       const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body,
-          data,
-          sound: 'default',
-        },
-        trigger: trigger instanceof Date ? { date: trigger } : { seconds: trigger },
+        content,
+        trigger: triggerConfig,
       });
       
       return notificationId;
@@ -188,19 +238,20 @@ export class NotificationService {
 
     // Map custom sound types to actual sound files or system sounds
     const getSoundForType = (type: string) => {
+      // For custom sounds, we use the filenames as defined in app.json
       switch (type) {
         case 'ambient-piano':
-          return 'ambient_piano.mp3';
+          return Platform.OS === 'ios' ? 'Ambient Piano.mp3' : 'ambient_piano';
         case 'singing-bowl':
-          return 'singing_bowl.mp3';
+          return Platform.OS === 'ios' ? 'Singing Bowl.mp3' : 'singing_bowl';
         case 'singing-bowl-hit':
-          return 'singing_bowl_hit.mp3';
+          return Platform.OS === 'ios' ? 'Singing Bowl Hit.mp3' : 'singing_bowl_hit';
         case 'tibetan-bowl-low':
-          return 'tibetan_bowl_low.mp3';
+          return Platform.OS === 'ios' ? 'Tibetan Bowl Low.mp3' : 'tibetan_bowl_low';
         case 'calm-music':
-          return 'calm_music.mp3';
+          return Platform.OS === 'ios' ? 'Calm Music.mp3' : 'calm_music';
         case 'relaxing-guitar':
-          return 'relaxing_guitar.mp3';
+          return Platform.OS === 'ios' ? 'Relaxing Guitar.mp3' : 'relaxing_guitar';
         default:
           return 'default';
       }
@@ -211,19 +262,38 @@ export class NotificationService {
       const preciseTriggerDate = new Date(triggerDate);
       preciseTriggerDate.setSeconds(0, 0);
       
+      const customSound = getSoundForType(soundType);
+      
+      const notificationContent: any = {
+        title,
+        body,
+        data,
+        sound: customSound, // Use custom sound or 'default'
+      };
+      
+      // Add platform-specific properties
+      if (Platform.OS === 'android') {
+        notificationContent.priority = Notifications.AndroidNotificationPriority.MAX;
+        notificationContent.vibrate = [0, 250, 250, 250];
+      } else if (Platform.OS === 'ios') {
+        notificationContent.badge = 1;
+        notificationContent.categoryIdentifier = 'mood-reminder';
+        // For iOS, ensure sound is properly configured
+        if (customSound !== 'default') {
+          notificationContent.sound = customSound;
+        }
+      }
+      
+      const trigger: any = { date: preciseTriggerDate };
+      
+      // Add Android-specific channel
+      if (Platform.OS === 'android') {
+        trigger.channelId = 'mood-reminders';
+      }
+      
       const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body,
-          data,
-          sound: 'default', // Use 'default' for system sound
-          priority: Notifications.AndroidNotificationPriority.MAX,
-          vibrate: [0, 250, 250, 250],
-        },
-        trigger: { 
-          date: preciseTriggerDate,
-          channelId: 'mood-reminders', // Explicitly set channel
-        },
+        content: notificationContent,
+        trigger,
       });
       
       return notificationId;

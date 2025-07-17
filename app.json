@@ -17,8 +17,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.maximus.manifestationalarm",
       "infoPlist": {
-        "UIBackgroundModes": ["audio", "background-fetch"],
-        "NSUserNotificationUsageDescription": "This app uses notifications to remind you to track your mood and practice manifestations."
+        "UIBackgroundModes": ["audio", "background-fetch", "background-processing"],
+        "NSUserNotificationUsageDescription": "This app uses notifications to remind you to track your mood and practice manifestations.",
+        "UIUserInterfaceStyle": "Light",
+        "UNUserNotificationCenter": true
       }
     },
     "android": {
@@ -32,7 +34,9 @@
         "android.permission.VIBRATE",
         "android.permission.WAKE_LOCK",
         "android.permission.RECEIVE_BOOT_COMPLETED",
-        "android.permission.SCHEDULE_EXACT_ALARM"
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM",
+        "android.permission.POST_NOTIFICATIONS"
       ]
     },
     "web": {
