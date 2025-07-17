@@ -19,6 +19,9 @@ export class AlarmService {
       
       // Schedule notifications if alarm is enabled
       if (alarm.isEnabled) {
+        // Update next trigger time first
+        await this.updateAlarmNextTrigger(alarm.id);
+        // Then schedule the notification
         await this.scheduleAlarmNotifications(alarm);
       }
       
@@ -63,6 +66,9 @@ export class AlarmService {
       await StorageService.updateAlarm(alarmId, {isEnabled: enabled});
       
       if (enabled) {
+        // Update next trigger time first
+        await this.updateAlarmNextTrigger(alarmId);
+        // Then schedule the notification
         await this.scheduleAlarmNotifications(alarm);
       } else {
         await this.cancelAlarmNotifications(alarmId);
@@ -98,14 +104,14 @@ export class AlarmService {
       // Clear any existing scheduled notifications for this alarm
       this.scheduledNotifications.delete(alarm.id);
     
-    // CRITICAL FIX: Schedule ONLY the next few notifications (max 10) instead of 30 days
+    // CRITICAL FIX: Schedule ONLY the next notification to prevent spam
     const today = new Date();
-    const maxNotifications = 10; // Limit to prevent notification spam
+    const maxNotifications = 1; // Only schedule ONE notification at a time
     const notificationIds: string[] = [];
     let scheduledCount = 0;
     
-    // Look ahead only 7 days maximum to find next notifications
-    const endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    // Look ahead only 24 hours to find the next notification
+    const endDate = new Date(today.getTime() + 24 * 60 * 60 * 1000);
     
     for (let date = new Date(today); date <= endDate && scheduledCount < maxNotifications; date.setDate(date.getDate() + 1)) {
       const dayOfWeek = date.getDay();
@@ -124,9 +130,11 @@ export class AlarmService {
       for (const notificationTime of notificationTimes) {
         if (scheduledCount >= maxNotifications) break;
         
-        // Only schedule future notifications (with a 1-minute buffer to avoid immediate scheduling)
-        const oneMinuteFromNow = new Date(Date.now() + 60 * 1000);
-        if (notificationTime > oneMinuteFromNow) {
+        // Only schedule future notifications (with a 30-second buffer to avoid immediate scheduling)
+        // Also ensure we set seconds to 0 for exact timing
+        notificationTime.setSeconds(0, 0);
+        const thirtySecondsFromNow = new Date(Date.now() + 30 * 1000);
+        if (notificationTime > thirtySecondsFromNow) {
           try {
             const notificationId = await NotificationService.scheduleAlarmNotification(
               alarm.id,
@@ -231,7 +239,7 @@ export class AlarmService {
       const now = new Date();
       let nextTrigger: Date | null = null;
       
-      // Check next 7 days
+      // Check today first, then next 7 days
       for (let i = 0; i < 7; i++) {
         const checkDate = new Date(now);
         checkDate.setDate(checkDate.getDate() + i);
@@ -245,7 +253,9 @@ export class AlarmService {
             checkDate
           );
           
-          const futureTimes = notificationTimes.filter(time => time > now);
+          // Filter for times that are at least 1 minute in the future
+          const oneMinuteFromNow = new Date(now.getTime() + 60 * 1000);
+          const futureTimes = notificationTimes.filter(time => time > oneMinuteFromNow);
           if (futureTimes.length > 0) {
             nextTrigger = futureTimes[0];
             break;
@@ -255,6 +265,7 @@ export class AlarmService {
       
       // Update alarm with next trigger time
       await StorageService.updateAlarm(alarmId, {nextTrigger: nextTrigger || undefined});
+      console.log(`Updated next trigger for alarm ${alarm.name}: ${nextTrigger ? nextTrigger.toLocaleString() : 'None'}`);
       
     } catch (error) {
       console.error('Error updating alarm next trigger:', error);
@@ -268,6 +279,13 @@ export class AlarmService {
       
       // Update next trigger time
       await this.updateAlarmNextTrigger(alarmId);
+      
+      // CRITICAL: Schedule the next notification immediately after triggering
+      const alarm = await this.getAlarmById(alarmId);
+      if (alarm && alarm.isEnabled) {
+        console.log(`Scheduling next notification for alarm: ${alarm.name}`);
+        await this.scheduleAlarmNotifications(alarm);
+      }
       
     } catch (error) {
       console.error('Error recording alarm trigger:', error);
@@ -423,8 +441,51 @@ export class AlarmService {
     console.log('Actual notifications grouped by alarm:');
     for (const [alarmId, notifications] of Object.entries(groupedByAlarm)) {
       console.log(`Alarm ${alarmId}: ${notifications.length} notifications`);
+      // Show the first notification trigger time
+      if (notifications.length > 0 && notifications[0].trigger) {
+        const triggerTime = new Date(notifications[0].trigger.value);
+        console.log(`  Next trigger: ${triggerTime.toLocaleString()}`);
+      }
     }
     
     console.log('=== End Debug ===');
+  }
+  
+  // Test notification immediately (for debugging)
+  static async testNotificationNow(alarmId: string): Promise<void> {
+    console.log('Testing notification immediately...');
+    
+    const alarm = await this.getAlarmById(alarmId);
+    if (!alarm) {
+      console.error('Alarm not found');
+      return;
+    }
+    
+    try {
+      // Schedule a notification 5 seconds from now
+      const testTime = new Date(Date.now() + 5 * 1000);
+      const notificationId = await NotificationService.scheduleAlarmNotification(
+        alarm.id,
+        alarm.name,
+        testTime,
+        alarm.soundType || 'default'
+      );
+      
+      console.log(`Test notification scheduled for ${testTime.toLocaleString()}`);
+      console.log(`Notification ID: ${notificationId}`);
+      
+      // Check if it was actually scheduled
+      const allNotifications = await NotificationService.getAllScheduledNotifications();
+      const testNotification = allNotifications.find(n => n.identifier === notificationId);
+      
+      if (testNotification) {
+        console.log('✅ Test notification confirmed in system');
+        console.log('Trigger time:', new Date(testNotification.trigger.value).toLocaleString());
+      } else {
+        console.error('❌ Test notification not found in system!');
+      }
+    } catch (error) {
+      console.error('Error scheduling test notification:', error);
+    }
   }
 }

@@ -35,10 +35,13 @@ export class NotificationService {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('mood-reminders', {
         name: 'Mood Reminders',
-        importance: Notifications.AndroidImportance.HIGH,
+        importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
-        sound: 'default',
+        sound: 'default', // Use system default sound
+        enableVibrate: true,
+        bypassDnd: false,
+        showBadge: true,
       });
     }
 
@@ -204,14 +207,23 @@ export class NotificationService {
     };
 
     try {
+      // Ensure the trigger date has seconds set to 0 for precise timing
+      const preciseTriggerDate = new Date(triggerDate);
+      preciseTriggerDate.setSeconds(0, 0);
+      
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body,
           data,
-          sound: getSoundForType(soundType),
+          sound: 'default', // Use 'default' for system sound
+          priority: Notifications.AndroidNotificationPriority.MAX,
+          vibrate: [0, 250, 250, 250],
         },
-        trigger: { date: triggerDate },
+        trigger: { 
+          date: preciseTriggerDate,
+          channelId: 'mood-reminders', // Explicitly set channel
+        },
       });
       
       return notificationId;

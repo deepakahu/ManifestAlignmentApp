@@ -72,20 +72,34 @@ const HomeScreen = ({navigation}: any) => {
 
   const formatNextTrigger = (alarm: Alarm) => {
     const nextTrigger = getNextTriggerTime(alarm);
-    if (!nextTrigger) return 'Disabled';
+    if (!nextTrigger) return { time: 'Disabled', relative: '' };
     
     const now = new Date();
     const diffMs = nextTrigger.getTime() - now.getTime();
+    
+    // Format the actual time
+    const hours = nextTrigger.getHours();
+    const minutes = nextTrigger.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const timeString = `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    
+    // Calculate relative time
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     
-    if (diffHours > 0) {
-      return `${diffHours}h ${diffMinutes}m`;
+    let relativeTime = '';
+    if (diffMs < 0) {
+      relativeTime = 'Overdue';
+    } else if (diffHours > 0) {
+      relativeTime = `in ${diffHours}h ${diffMinutes}m`;
     } else if (diffMinutes > 0) {
-      return `${diffMinutes}m`;
+      relativeTime = `in ${diffMinutes}m`;
     } else {
-      return 'Soon';
+      relativeTime = 'Soon';
     }
+    
+    return { time: timeString, relative: relativeTime };
   };
 
   const handleCreateAlarm = () => {
@@ -314,9 +328,11 @@ const HomeScreen = ({navigation}: any) => {
                   </Text>
                 </View>
                 <View style={styles.alarmTrigger}>
-                  <Text style={styles.nextTriggerLabel}>Next in</Text>
                   <Text style={styles.nextTriggerTime}>
-                    {formatNextTrigger(alarm)}
+                    {formatNextTrigger(alarm).time}
+                  </Text>
+                  <Text style={styles.nextTriggerLabel}>
+                    {formatNextTrigger(alarm).relative}
                   </Text>
                 </View>
               </TouchableOpacity>
