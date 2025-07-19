@@ -18,7 +18,7 @@ export default {
   platform: {
     ios: undefined,
     android: {
-      versionCode: 1,
+      versionCode: 3,
     },
   },
   sessionId: 'test-session-id',
