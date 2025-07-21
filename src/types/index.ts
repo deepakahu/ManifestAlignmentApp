@@ -73,11 +73,12 @@ export type RootStackParamList = {
   MainTabs: undefined;
   AlarmSetup: { alarm?: Alarm };
   AlarmList: undefined;
-  MoodRecording: { alarmId?: string };
+  AlarmRinging: { alarmId: string; alarmName: string; fromNotification?: boolean };
+  MoodRecording: { alarmId?: string; alarmName?: string; fromAlarm?: boolean };
   Settings: undefined;
   ManifestationCreate: { manifestation?: ManifestationEntry };
   ManifestationView: { manifestation: ManifestationEntry };
-  ManifestationReading: { moodEntryId?: string };
+  ManifestationReading: { moodEntryId?: string; fromAlarm?: boolean };
 };
 
 export type MainTabParamList = {

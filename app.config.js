@@ -35,7 +35,11 @@ export default {
       permissions: [
         "android.permission.VIBRATE",
         "android.permission.WAKE_LOCK",
-        "android.permission.RECEIVE_BOOT_COMPLETED"
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.USE_FULL_SCREEN_INTENT"
       ],
       intentFilters: [
         {
@@ -54,14 +58,30 @@ export default {
     },
     notifications: {
       icon: "./assets/images/icons/icon.png",
-      color: "#6366f1"
+      color: "#6366f1",
+      sounds: [
+        "./assets/sounds/Ambient Piano.mp3",
+        "./assets/sounds/Singing Bowl.mp3",
+        "./assets/sounds/Singing Bowl Hit.mp3",
+        "./assets/sounds/Tibetan Bowl Low.mp3",
+        "./assets/sounds/Calm Music.mp3",
+        "./assets/sounds/Relaxing Guitar.mp3"
+      ]
     },
     plugins: [
       [
         "expo-notifications",
         {
           icon: "./assets/images/icons/icon.png",
-          color: "#6366f1"
+          color: "#6366f1",
+          sounds: [
+            "./assets/sounds/Ambient Piano.mp3",
+            "./assets/sounds/Singing Bowl.mp3",
+            "./assets/sounds/Singing Bowl Hit.mp3",
+            "./assets/sounds/Tibetan Bowl Low.mp3",
+            "./assets/sounds/Calm Music.mp3",
+            "./assets/sounds/Relaxing Guitar.mp3"
+          ]
         }
       ]
     ],

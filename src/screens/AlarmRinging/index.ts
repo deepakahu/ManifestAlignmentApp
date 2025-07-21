@@ -1,0 +1,1 @@
+export { AlarmRingingScreen } from './AlarmRingingScreen';

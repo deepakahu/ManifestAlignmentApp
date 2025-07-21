@@ -127,13 +127,13 @@ export class NotificationService {
         // Add small delay to ensure navigation is ready
         setTimeout(() => {
           try {
-            this.navigationRef.current.navigate('MoodRecording', {
+            // Navigate to AlarmRinging screen instead of directly to MoodRecording
+            this.navigationRef.current.navigate('AlarmRinging', {
               alarmId: data.alarmId,
               alarmName: data.alarmName,
               fromNotification: true,
-              timestamp: new Date().toISOString(),
             });
-            console.log('Navigated to MoodRecording with:', {
+            console.log('Navigated to AlarmRinging with:', {
               alarmId: data.alarmId,
               alarmName: data.alarmName,
             });
@@ -148,7 +148,7 @@ export class NotificationService {
   }
 
   private static handleDeepLink(data: any): void {
-    const url = `manifestexpo://mood-recording/${data.alarmId}?alarmName=${encodeURIComponent(data.alarmName || '')}`;
+    const url = `manifestexpo://alarm-ringing/${data.alarmId}?alarmName=${encodeURIComponent(data.alarmName || '')}`;
     
     Linking.openURL(url).catch((error: any) => {
       console.error('Deep link failed:', error);
