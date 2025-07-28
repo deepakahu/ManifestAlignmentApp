@@ -228,75 +228,21 @@ export class NotificationService {
     triggerDate: Date,
     soundType: string = 'default'
   ): Promise<string> {
-    const title = 'Mood Check-In';
-    const body = `Time for your ${alarmName} mood check-in!`;
-    const data = {
-      type: 'mood_reminder',
-      alarmId,
-      alarmName,
-    };
-
-    // Map custom sound types to actual sound files or system sounds
-    const getSoundForType = (type: string) => {
-      // For custom sounds, we use the filenames as defined in app.json
-      switch (type) {
-        case 'ambient-piano':
-          return Platform.OS === 'ios' ? 'Ambient Piano.mp3' : 'ambient_piano';
-        case 'singing-bowl':
-          return Platform.OS === 'ios' ? 'Singing Bowl.mp3' : 'singing_bowl';
-        case 'singing-bowl-hit':
-          return Platform.OS === 'ios' ? 'Singing Bowl Hit.mp3' : 'singing_bowl_hit';
-        case 'tibetan-bowl-low':
-          return Platform.OS === 'ios' ? 'Tibetan Bowl Low.mp3' : 'tibetan_bowl_low';
-        case 'calm-music':
-          return Platform.OS === 'ios' ? 'Calm Music.mp3' : 'calm_music';
-        case 'relaxing-guitar':
-          return Platform.OS === 'ios' ? 'Relaxing Guitar.mp3' : 'relaxing_guitar';
-        default:
-          return 'default';
-      }
-    };
-
     try {
-      // Ensure the trigger date has seconds set to 0 for precise timing
-      const preciseTriggerDate = new Date(triggerDate);
-      preciseTriggerDate.setSeconds(0, 0);
+      // CRITICAL FIX: Use AlarmNotificationService instead
+      const AlarmNotificationService = require('./AlarmNotificationService').AlarmNotificationService;
       
-      const customSound = getSoundForType(soundType);
+      // Ensure permissions and alarm channel are configured
+      await AlarmNotificationService.initialize();
       
-      const notificationContent: any = {
-        title,
-        body,
-        data,
-        sound: customSound, // Use custom sound or 'default'
-      };
-      
-      // Add platform-specific properties
-      if (Platform.OS === 'android') {
-        notificationContent.priority = Notifications.AndroidNotificationPriority.MAX;
-        notificationContent.vibrate = [0, 250, 250, 250];
-      } else if (Platform.OS === 'ios') {
-        notificationContent.badge = 1;
-        notificationContent.categoryIdentifier = 'mood-reminder';
-        // For iOS, ensure sound is properly configured
-        if (customSound !== 'default') {
-          notificationContent.sound = customSound;
-        }
-      }
-      
-      const trigger: any = { date: preciseTriggerDate };
-      
-      // Add Android-specific channel
-      if (Platform.OS === 'android') {
-        trigger.channelId = 'mood-reminders';
-      }
-      
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: notificationContent,
-        trigger,
-      });
-      
-      return notificationId;
+      return await AlarmNotificationService.scheduleAlarmNotification(
+        alarmId,
+        '⏰ Alarm!',
+        `Time for your ${alarmName} check-in!`,
+        triggerDate,
+        soundType,
+        { alarmName }
+      );
     } catch (error) {
       console.error('Error scheduling alarm notification:', error);
       throw error;

@@ -104,14 +104,14 @@ export class AlarmService {
       // Clear any existing scheduled notifications for this alarm
       this.scheduledNotifications.delete(alarm.id);
     
-    // CRITICAL FIX: Schedule ONLY the next notification to prevent spam
+    // IMPROVED FIX: Schedule more notifications for better reliability
     const today = new Date();
-    const maxNotifications = 1; // Only schedule ONE notification at a time
+    const maxNotifications = 5; // Schedule up to 5 notifications for better reliability
     const notificationIds: string[] = [];
     let scheduledCount = 0;
     
-    // Look ahead only 24 hours to find the next notification
-    const endDate = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    // Look ahead 3 days to find notifications
+    const endDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
     
     for (let date = new Date(today); date <= endDate && scheduledCount < maxNotifications; date.setDate(date.getDate() + 1)) {
       const dayOfWeek = date.getDay();
@@ -180,25 +180,42 @@ export class AlarmService {
     const endDate = new Date(date);
     endDate.setHours(endHours, endMinutes, 0, 0);
     
-    // Generate notification times at intervals
-    let currentTime = new Date(startDate);
+    // Handle case where end time is next day (e.g., start: 22:00, end: 06:00)
+    if (endDate <= startDate) {
+      endDate.setDate(endDate.getDate() + 1);
+    }
     
     if (interval === 'test_mode') {
       // Test mode - generate 5 notifications at specified intervals (in minutes)
       const intervalMinutes = testInterval || 5; // Default to 5 minutes if not specified
+      let currentTime = new Date(startDate);
+      
       for (let i = 0; i < 5; i++) {
-        const testTime = new Date(currentTime);
-        testTime.setMinutes(testTime.getMinutes() + (i * intervalMinutes));
-        if (testTime <= endDate) {
-          times.push(testTime);
+        if (currentTime <= endDate) {
+          times.push(new Date(currentTime));
         }
+        currentTime.setMinutes(currentTime.getMinutes() + intervalMinutes);
       }
     } else {
-      // Regular interval mode
+      // Regular interval mode - IMPROVED for better recurring scheduling
+      let currentTime = new Date(startDate);
+      
+      // Generate all notification times within the time window
       while (currentTime < endDate) {
         times.push(new Date(currentTime));
-        currentTime.setHours(currentTime.getHours() + interval.hours, currentTime.getMinutes() + interval.minutes);
+        
+        // Add the interval
+        const totalMinutes = (interval.hours * 60) + interval.minutes;
+        currentTime.setMinutes(currentTime.getMinutes() + totalMinutes);
+        
+        // Safety check to prevent infinite loops
+        if (times.length > 50) {
+          console.warn('Generated too many notification times, breaking loop');
+          break;
+        }
       }
+      
+      console.log(`📊 Generated ${times.length} notification times for ${date.toDateString()} between ${startTime} and ${endTime} with ${interval.hours}h ${interval.minutes}m intervals`);
     }
     
     return times;
@@ -233,7 +250,11 @@ export class AlarmService {
       const alarms = await this.getAlarms();
       const alarm = alarms.find(a => a.id === alarmId);
       
-      if (!alarm || !alarm.isEnabled) return;
+      if (!alarm || !alarm.isEnabled) {
+        // If alarm is disabled, clear the next trigger
+        await StorageService.updateAlarm(alarmId, {nextTrigger: undefined});
+        return;
+      }
       
       // Calculate next trigger time
       const now = new Date();
@@ -253,10 +274,13 @@ export class AlarmService {
             checkDate
           );
           
-          // Filter for times that are at least 1 minute in the future
-          const oneMinuteFromNow = new Date(now.getTime() + 60 * 1000);
-          const futureTimes = notificationTimes.filter(time => time > oneMinuteFromNow);
+          // Filter for times that are at least 30 seconds in the future for more precision
+          const thirtySecondsFromNow = new Date(now.getTime() + 30 * 1000);
+          const futureTimes = notificationTimes.filter(time => time > thirtySecondsFromNow);
+          
           if (futureTimes.length > 0) {
+            // Sort times to get the earliest
+            futureTimes.sort((a, b) => a.getTime() - b.getTime());
             nextTrigger = futureTimes[0];
             break;
           }
@@ -265,7 +289,12 @@ export class AlarmService {
       
       // Update alarm with next trigger time
       await StorageService.updateAlarm(alarmId, {nextTrigger: nextTrigger || undefined});
-      console.log(`Updated next trigger for alarm ${alarm.name}: ${nextTrigger ? nextTrigger.toLocaleString() : 'None'}`);
+      
+      if (nextTrigger) {
+        console.log(`📅 Updated next trigger for "${alarm.name}": ${nextTrigger.toLocaleString()}`);
+      } else {
+        console.log(`⚠️ No future trigger found for "${alarm.name}" in next 7 days`);
+      }
       
     } catch (error) {
       console.error('Error updating alarm next trigger:', error);
@@ -277,14 +306,33 @@ export class AlarmService {
       const now = new Date();
       await StorageService.updateAlarm(alarmId, {lastTriggered: now});
       
-      // Update next trigger time
-      await this.updateAlarmNextTrigger(alarmId);
+      console.log(`⏰ Alarm ${alarmId} triggered at ${now.toLocaleString()}`);
       
-      // CRITICAL: Schedule the next notification immediately after triggering
+      // CRITICAL: Immediately reschedule for the next occurrence
       const alarm = await this.getAlarmById(alarmId);
       if (alarm && alarm.isEnabled) {
-        console.log(`Scheduling next notification for alarm: ${alarm.name}`);
-        await this.scheduleAlarmNotifications(alarm);
+        console.log(`🔄 Auto-rescheduling ${alarm.name} for next occurrence...`);
+        
+        // Update next trigger time first
+        await this.updateAlarmNextTrigger(alarmId);
+        
+        // Schedule next notifications immediately (no delay needed)
+        try {
+          await this.scheduleAlarmNotifications(alarm);
+          console.log(`✅ Successfully rescheduled ${alarm.name}`);
+        } catch (error) {
+          console.error(`❌ Failed to reschedule ${alarm.name}:`, error);
+          
+          // Retry once after a short delay
+          setTimeout(async () => {
+            try {
+              await this.scheduleAlarmNotifications(alarm);
+              console.log(`✅ Retry successful for ${alarm.name}`);
+            } catch (retryError) {
+              console.error(`❌ Retry failed for ${alarm.name}:`, retryError);
+            }
+          }, 1000);
+        }
       }
       
     } catch (error) {
@@ -487,5 +535,62 @@ export class AlarmService {
     } catch (error) {
       console.error('Error scheduling test notification:', error);
     }
+  }
+
+  // NEW: Verify alarm scheduling with detailed logging
+  static async verifyAlarmScheduling(alarmId: string): Promise<void> {
+    console.log(`🔍 Verifying alarm scheduling for ${alarmId}...`);
+    
+    const alarm = await this.getAlarmById(alarmId);
+    if (!alarm) {
+      console.error('❌ Alarm not found');
+      return;
+    }
+    
+    console.log(`📋 Alarm Details:`);
+    console.log(`  Name: ${alarm.name}`);
+    console.log(`  Enabled: ${alarm.isEnabled}`);
+    console.log(`  Start Time: ${alarm.dayStartTime}`);
+    console.log(`  End Time: ${alarm.dayEndTime}`);
+    console.log(`  Interval: ${alarm.interval.hours}h ${alarm.interval.minutes}m`);
+    console.log(`  Active Days: ${alarm.activeDays.map((active, i) => active ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i] : null).filter(Boolean).join(', ')}`);
+    console.log(`  Next Trigger: ${alarm.nextTrigger ? new Date(alarm.nextTrigger).toLocaleString() : 'Not set'}`);
+    
+    if (alarm.isEnabled) {
+      // Show next few notification times
+      const today = new Date();
+      for (let i = 0; i < 3; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(checkDate.getDate() + i);
+        const dayOfWeek = checkDate.getDay();
+        
+        if (alarm.activeDays[dayOfWeek]) {
+          const times = this.generateNotificationTimes(
+            alarm.dayStartTime,
+            alarm.dayEndTime,
+            alarm.interval,
+            checkDate
+          );
+          
+          console.log(`📅 ${checkDate.toDateString()} (${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dayOfWeek]}):`);
+          times.forEach((time, index) => {
+            const isFuture = time > today;
+            console.log(`  ${index + 1}. ${time.toLocaleString()} ${isFuture ? '(future)' : '(past)'}`);
+          });
+        }
+      }
+    }
+    
+    // Check actual scheduled notifications
+    const allNotifications = await NotificationService.getAllScheduledNotifications();
+    const alarmNotifications = allNotifications.filter(n => n.content.data?.alarmId === alarmId);
+    
+    console.log(`📱 Currently scheduled notifications: ${alarmNotifications.length}`);
+    alarmNotifications.forEach((notification, index) => {
+      const triggerTime = new Date(notification.trigger.value);
+      console.log(`  ${index + 1}. ${triggerTime.toLocaleString()} (ID: ${notification.identifier})`);
+    });
+    
+    console.log('✅ Verification complete');
   }
 }

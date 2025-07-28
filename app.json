@@ -2,7 +2,7 @@
   "expo": {
     "name": "Manifestation Alarm",
     "slug": "manifestation-alarm",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "sdkVersion": "53.0.0",
     "icon": "./assets/images/icons/manifestation-alarm-1024.png",
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.maximus.manifestationalarm",
-      "versionCode": 4,
+      "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -73,7 +73,10 @@
       ]
     ],
     "extra": {
-      "environment": "production"
+      "environment": "development"
+    },
+    "updates": {
+      "enabled": false
     }
   }
 }
