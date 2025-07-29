@@ -107,14 +107,18 @@ const AppNavigator = () => {
 
   useEffect(() => {
     // Initialize services with navigation reference
-    if (NotificationService) {
-      NotificationService.initialize(navigationRef);
-    }
-    if (AlarmNotificationService) {
-      // Initialize AlarmNotificationService specifically for alarm notifications
-      AlarmNotificationService.initialize(navigationRef);
-    }
-    AlarmService.initialize();
+    const initializeServices = async () => {
+      if (NotificationService) {
+        NotificationService.initialize(navigationRef);
+      }
+      if (AlarmNotificationService) {
+        // Initialize AlarmNotificationService specifically for alarm notifications
+        AlarmNotificationService.initialize(navigationRef);
+      }
+      await AlarmService.initialize();
+    };
+    
+    initializeServices();
   }, []);
 
   return (

@@ -307,6 +307,19 @@ export class AlarmNotificationService {
   }
 
   /**
+   * Cancel all scheduled notifications (for alarm service use)
+   */
+  static async cancelAllNotifications(): Promise<void> {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      console.log('✅ All notifications canceled');
+    } catch (error) {
+      console.error('❌ Failed to cancel all notifications:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Test alarm notification immediately
    */
   static async testAlarmNotification(): Promise<void> {

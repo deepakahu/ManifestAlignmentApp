@@ -1,4 +1,4 @@
-import {NotificationService} from './notifications/NotificationService';
+import {AlarmNotificationService} from './notifications/AlarmNotificationService';
 import {StorageService} from './storage/StorageService';
 import {Alarm} from '../types';
 
@@ -7,10 +7,18 @@ export class AlarmService {
   private static scheduledNotifications = new Map<string, string[]>();
   private static schedulingInProgress = new Set<string>();
 
-  static initialize() {
+  static async initialize() {
     if (this.isInitialized) return;
-    this.isInitialized = true;
-    console.log('AlarmService initialized');
+    
+    try {
+      // Ensure AlarmNotificationService is initialized
+      await AlarmNotificationService.initialize();
+      
+      this.isInitialized = true;
+      console.log('AlarmService initialized');
+    } catch (error) {
+      console.error('Failed to initialize AlarmService:', error);
+    }
   }
 
   static async saveAlarm(alarm: Alarm): Promise<boolean> {
@@ -95,7 +103,7 @@ export class AlarmService {
     try {
       // EMERGENCY CLEANUP: Cancel ALL notifications first, then specific alarm notifications
       console.log('Emergency cleanup: Canceling all notifications before scheduling new ones...');
-      await NotificationService.cancelAllNotifications();
+      await AlarmNotificationService.cancelAllNotifications();
       this.scheduledNotifications.clear();
       
       // Double-check: Cancel specific alarm notifications
@@ -136,11 +144,13 @@ export class AlarmService {
         const thirtySecondsFromNow = new Date(Date.now() + 30 * 1000);
         if (notificationTime > thirtySecondsFromNow) {
           try {
-            const notificationId = await NotificationService.scheduleAlarmNotification(
+            const notificationId = await AlarmNotificationService.scheduleAlarmNotification(
               alarm.id,
-              alarm.name,
+              '⏰ Alarm!',
+              `Time for your ${alarm.name} check-in!`,
               notificationTime,
-              alarm.soundType || 'default'
+              alarm.soundType || 'default',
+              { alarmName: alarm.name }
             );
             notificationIds.push(notificationId);
             scheduledCount++;
@@ -230,7 +240,7 @@ export class AlarmService {
       // Cancel each notification individually
       for (const notificationId of notificationIds) {
         try {
-          await NotificationService.cancelNotification(notificationId);
+          await AlarmNotificationService.cancelAlarmNotification(notificationId);
         } catch (error) {
           console.error(`Error canceling notification ${notificationId}:`, error);
         }
@@ -378,10 +388,10 @@ export class AlarmService {
     
     // EMERGENCY: Force cancel ALL notifications multiple times to ensure cleanup
     console.log('Force canceling all notifications (attempt 1)...');
-    await NotificationService.cancelAllNotifications();
+    await AlarmNotificationService.cancelAllNotifications();
     
     console.log('Force canceling all notifications (attempt 2)...');
-    await NotificationService.cancelAllNotifications();
+    await AlarmNotificationService.cancelAllNotifications();
     
     this.scheduledNotifications.clear();
     this.schedulingInProgress.clear();
@@ -396,12 +406,12 @@ export class AlarmService {
     }
     
     // Verify final notification count
-    const finalNotifications = await NotificationService.getAllScheduledNotifications();
+    const finalNotifications = await AlarmNotificationService.getScheduledAlarmNotifications();
     console.log(`✅ Refresh complete. Total notifications: ${finalNotifications.length}`);
     
     if (finalNotifications.length > 50) {
       console.error('🚨 WARNING: Too many notifications scheduled! Canceling all...');
-      await NotificationService.cancelAllNotifications();
+      await AlarmNotificationService.cancelAllNotifications();
       this.scheduledNotifications.clear();
     }
   }
@@ -430,9 +440,9 @@ export class AlarmService {
     console.log('🚨 EMERGENCY NOTIFICATION CANCEL INITIATED');
     
     try {
-      // Cancel using NotificationService
-      console.log('Canceling via NotificationService...');
-      await NotificationService.cancelAllNotifications();
+      // Cancel using AlarmNotificationService
+      console.log('Canceling via AlarmNotificationService...');
+      await AlarmNotificationService.cancelAllNotifications();
       
       // Clear internal tracking
       console.log('Clearing internal tracking...');
@@ -440,21 +450,21 @@ export class AlarmService {
       this.schedulingInProgress.clear();
       
       // Verify cancellation
-      const remaining = await NotificationService.getAllScheduledNotifications();
+      const remaining = await AlarmNotificationService.getScheduledAlarmNotifications();
       console.log(`Remaining notifications after emergency cancel: ${remaining.length}`);
       
       if (remaining.length > 0) {
         console.log('Force canceling remaining notifications individually...');
         for (const notification of remaining) {
           try {
-            await NotificationService.cancelNotification(notification.identifier);
+            await AlarmNotificationService.cancelAlarmNotification(notification.identifier);
           } catch (error) {
             console.error('Error force canceling notification:', error);
           }
         }
       }
       
-      const finalCheck = await NotificationService.getAllScheduledNotifications();
+      const finalCheck = await AlarmNotificationService.getScheduledAlarmNotifications();
       console.log(`✅ Emergency cancel complete. Final count: ${finalCheck.length}`);
       
     } catch (error) {
@@ -473,7 +483,7 @@ export class AlarmService {
     }
     
     // Check actual scheduled notifications
-    const actualNotifications = await NotificationService.getAllScheduledNotifications();
+    const actualNotifications = await AlarmNotificationService.getScheduledAlarmNotifications();
     console.log(`Actual scheduled notifications: ${actualNotifications.length}`);
     
     // Group by alarm ID
@@ -512,18 +522,20 @@ export class AlarmService {
     try {
       // Schedule a notification 5 seconds from now
       const testTime = new Date(Date.now() + 5 * 1000);
-      const notificationId = await NotificationService.scheduleAlarmNotification(
+      const notificationId = await AlarmNotificationService.scheduleAlarmNotification(
         alarm.id,
-        alarm.name,
+        '🧪 Test Alarm',
+        `Test notification for ${alarm.name}`,
         testTime,
-        alarm.soundType || 'default'
+        alarm.soundType || 'default',
+        { test: true, alarmName: alarm.name }
       );
       
       console.log(`Test notification scheduled for ${testTime.toLocaleString()}`);
       console.log(`Notification ID: ${notificationId}`);
       
       // Check if it was actually scheduled
-      const allNotifications = await NotificationService.getAllScheduledNotifications();
+      const allNotifications = await AlarmNotificationService.getScheduledAlarmNotifications();
       const testNotification = allNotifications.find(n => n.identifier === notificationId);
       
       if (testNotification) {
@@ -582,7 +594,7 @@ export class AlarmService {
     }
     
     // Check actual scheduled notifications
-    const allNotifications = await NotificationService.getAllScheduledNotifications();
+    const allNotifications = await AlarmNotificationService.getScheduledAlarmNotifications();
     const alarmNotifications = allNotifications.filter(n => n.content.data?.alarmId === alarmId);
     
     console.log(`📱 Currently scheduled notifications: ${alarmNotifications.length}`);
