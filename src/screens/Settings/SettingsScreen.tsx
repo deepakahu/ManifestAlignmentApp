@@ -166,7 +166,7 @@ const SettingsScreen = () => {
             </View>
             <View style={styles.settingContent}>
               <Text style={styles.settingLabel}>Version</Text>
-              <Text style={styles.settingDescription}>1.0.0</Text>
+              <Text style={styles.settingDescription}>1.0.6</Text>
             </View>
           </View>
 

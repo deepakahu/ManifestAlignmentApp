@@ -2,7 +2,7 @@
   "expo": {
     "name": "Manifestation Alarm",
     "slug": "manifestation-alarm",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "orientation": "portrait",
     "sdkVersion": "53.0.0",
     "icon": "./assets/images/icons/manifestation-alarm-1024.png",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.manifestationalarm.app",
+      "bundleIdentifier": "com.maximus.manifestationalarm",
       "infoPlist": {
         "UIBackgroundModes": ["audio", "background-fetch", "background-processing"],
         "NSUserNotificationUsageDescription": "This app uses notifications to remind you to track your mood and practice manifestations.",
@@ -24,8 +24,8 @@
       }
     },
     "android": {
-      "package": "com.manifestationalarm.app",
-      "versionCode": 5,
+      "package": "com.maximus.manifestationalarm",
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"

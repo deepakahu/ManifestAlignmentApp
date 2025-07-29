@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Manifestation Alarm",
     slug: "manifestation-alarm",
-    version: "1.0.5",
+    version: "1.0.6",
     orientation: "portrait",
     icon: "./assets/images/icons/icon.png",
     userInterfaceStyle: "light",
@@ -16,7 +16,7 @@ export default {
       backgroundColor: "#ffffff"
     },
     ios: {
-      bundleIdentifier: 'com.manifestationalarm.app',
+      bundleIdentifier: 'com.maximus.manifestationalarm',
       supportsTablet: true,
       infoPlist: {
         UIBackgroundModes: ['audio', 'background-fetch'],
@@ -25,9 +25,9 @@ export default {
       },
     },
     android: {
-      package: "com.manifestationalarm.app",
+      package: "com.maximus.manifestationalarm",
       edgeToEdge: true,
-      versionCode: 5, 
+      versionCode: 6, 
       adaptiveIcon: {
         foregroundImage: "./assets/images/icons/adaptive-icon.png",
         backgroundColor: "#ffffff"
