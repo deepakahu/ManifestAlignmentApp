@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.maximus.manifestationalarm",
+      "bundleIdentifier": "com.manifestationalarm.app",
       "infoPlist": {
         "UIBackgroundModes": ["audio", "background-fetch", "background-processing"],
         "NSUserNotificationUsageDescription": "This app uses notifications to remind you to track your mood and practice manifestations.",
@@ -24,7 +24,7 @@
       }
     },
     "android": {
-      "package": "com.maximus.manifestationalarm",
+      "package": "com.manifestationalarm.app",
       "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icons/adaptive-icon.png",

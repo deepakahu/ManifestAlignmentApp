@@ -223,8 +223,17 @@ const AlarmSetupScreen = () => {
     try {
       const success = await AlarmService.saveAlarm(alarmData);
       if (success) {
-        // Navigate directly to AlarmList to avoid stale data issues
-        navigation.navigate('AlarmList');
+        // Show success message and navigate to home
+        Alert.alert(
+          'Success', 
+          isEditing ? 'Alarm updated successfully!' : 'Alarm created successfully!',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.navigate('MainTabs', { screen: 'Home' })
+            }
+          ]
+        );
       } else {
         Alert.alert('Error', 'Failed to save alarm. Please try again.');
       }
@@ -291,8 +300,8 @@ const AlarmSetupScreen = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}>
+          <Ionicons name="home" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.title}>
           {isEditing ? 'Edit Alarm' : 'Create New Alarm'}

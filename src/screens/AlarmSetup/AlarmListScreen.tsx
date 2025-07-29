@@ -155,8 +155,8 @@ const AlarmListScreen = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}>
+          <Ionicons name="home" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.title}>Manifestation Alarms</Text>
         <TouchableOpacity

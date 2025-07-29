@@ -4,6 +4,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {StorageService} from '../../services/storage/StorageService';
 import {AlarmService} from '../../services/AlarmService';
+import {AlarmDebugger} from '../../utils/alarmDebug';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -52,6 +53,19 @@ const SettingsScreen = () => {
       Alert.alert('Success', 'All alarms refreshed and re-scheduled');
     } catch (error) {
       Alert.alert('Error', 'Failed to refresh alarms');
+    }
+  };
+
+  const handleDiagnostics = async () => {
+    try {
+      const issues = await AlarmDebugger.runDiagnostics();
+      const report = AlarmDebugger.formatDiagnosticReport(issues);
+      Alert.alert('Alarm Diagnostics', report, [
+        { text: 'OK' },
+        { text: 'Test Alarm', onPress: () => AlarmDebugger.testAlarmImmediately() }
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to run diagnostics');
     }
   };
 
@@ -123,6 +137,19 @@ const SettingsScreen = () => {
               <Text style={styles.settingLabel}>Manage Alarms</Text>
               <Text style={styles.settingDescription}>
                 View and edit all your alarms
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem} onPress={handleDiagnostics}>
+            <View style={styles.settingIcon}>
+              <Ionicons name="bug" size={20} color="#f59e0b" />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingLabel}>Alarm Diagnostics</Text>
+              <Text style={styles.settingDescription}>
+                Check alarm configuration and test functionality
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#9ca3af" />

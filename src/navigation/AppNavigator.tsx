@@ -7,14 +7,16 @@ import * as Linking from 'expo-linking';
 import {Platform} from 'react-native';
 import {AlarmService} from '../services/AlarmService';
 
-// Import NotificationService (available on mobile platforms)
+// Import NotificationService and AlarmNotificationService (available on mobile platforms)
 let NotificationService: any = null;
+let AlarmNotificationService: any = null;
 try {
   if (Platform.OS !== 'web') {
     NotificationService = require('../services/notifications/NotificationService').NotificationService;
+    AlarmNotificationService = require('../services/notifications/AlarmNotificationService').AlarmNotificationService;
   }
 } catch (error) {
-  console.warn('NotificationService not available in this environment:', error);
+  console.warn('Notification services not available in this environment:', error);
 }
 
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -107,6 +109,10 @@ const AppNavigator = () => {
     // Initialize services with navigation reference
     if (NotificationService) {
       NotificationService.initialize(navigationRef);
+    }
+    if (AlarmNotificationService) {
+      // Initialize AlarmNotificationService specifically for alarm notifications
+      AlarmNotificationService.initialize(navigationRef);
     }
     AlarmService.initialize();
   }, []);

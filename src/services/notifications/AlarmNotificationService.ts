@@ -93,25 +93,45 @@ export class AlarmNotificationService {
    */
   static async configureAlarmChannel(): Promise<void> {
     if (Platform.OS === 'android') {
-      // Delete existing channel to ensure fresh configuration
-      await Notifications.deleteNotificationChannelAsync('alarm_channel');
-      
-      // Create new alarm channel with maximum priority
-      await Notifications.setNotificationChannelAsync('alarm_channel', {
-        name: 'Alarm Notifications',
-        importance: Notifications.AndroidImportance.MAX, // Maximum importance for alarms
-        sound: 'default', // Will be overridden by custom sounds if specified
-        vibrationPattern: [0, 500, 250, 500, 250, 500], // Strong vibration pattern
-        lightColor: '#FF0000', // Red LED light
-        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC, // Show on lock screen
-        bypassDnd: true, // CRITICAL: Bypass Do Not Disturb for alarms
-        enableVibrate: true,
-        enableLights: true,
-        showBadge: true,
-        description: 'High-priority notifications for alarms that need immediate attention',
-      });
-      
-      console.log('Alarm channel configured successfully');
+      try {
+        // Delete existing channel to ensure fresh configuration
+        await Notifications.deleteNotificationChannelAsync('alarm_channel');
+        console.log('Deleted existing alarm channel');
+        
+        // Create new alarm channel with maximum priority
+        await Notifications.setNotificationChannelAsync('alarm_channel', {
+          name: 'Alarm Notifications',
+          importance: Notifications.AndroidImportance.MAX, // Maximum importance for alarms
+          sound: 'default', // Will be overridden by custom sounds if specified
+          vibrationPattern: [0, 500, 250, 500, 250, 500], // Strong vibration pattern
+          lightColor: '#FF0000', // Red LED light
+          lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC, // Show on lock screen
+          bypassDnd: true, // CRITICAL: Bypass Do Not Disturb for alarms
+          enableVibrate: true,
+          enableLights: true,
+          showBadge: true,
+          description: 'High-priority notifications for alarms that need immediate attention',
+        });
+        
+        console.log('✅ Alarm channel configured successfully');
+        
+        // Verify the channel was created
+        const channels = await Notifications.getNotificationChannelsAsync();
+        const alarmChannel = channels.find(c => c.id === 'alarm_channel');
+        
+        if (alarmChannel) {
+          console.log('✅ Alarm channel verified:', {
+            importance: alarmChannel.importance,
+            bypassDnd: alarmChannel.bypassDnd,
+            sound: alarmChannel.sound,
+          });
+        } else {
+          console.error('❌ Alarm channel not found after creation!');
+        }
+      } catch (error) {
+        console.error('❌ Failed to configure alarm channel:', error);
+        throw error;
+      }
     }
   }
 
