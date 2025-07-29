@@ -25,6 +25,7 @@ const MoodTrackingScreen = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [trendsFilter, setTrendsFilter] = useState<'week' | 'month' | 'all'>('week');
   const [showTrendsModal, setShowTrendsModal] = useState(false);
+  const [showTrendsGraph, setShowTrendsGraph] = useState(false);
 
   const moodEmojis = ['😢', '😕', '😐', '😊', '😄'];
   const moodLabels = ['Very Sad', 'Sad', 'Neutral', 'Happy', 'Very Happy'];
@@ -228,8 +229,29 @@ const MoodTrackingScreen = () => {
     </View>
   );
 
-  const renderTrendsSection = () => {
+  const renderTrendsToggleButton = () => {
     if (state.moodEntries.length < 2) return null;
+    
+    return (
+      <TouchableOpacity
+        style={styles.trendsToggleButton}
+        onPress={() => setShowTrendsGraph(!showTrendsGraph)}
+        activeOpacity={0.7}
+      >
+        <Ionicons 
+          name={showTrendsGraph ? "chevron-up" : "trending-up"} 
+          size={20} 
+          color="#6366f1" 
+        />
+        <Text style={styles.trendsToggleText}>
+          {showTrendsGraph ? 'Hide Trends' : 'Show Trends'}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderTrendsSection = () => {
+    if (state.moodEntries.length < 2 || !showTrendsGraph) return null;
     
     return (
       <View style={styles.trendsContainer}>
@@ -531,16 +553,6 @@ const MoodTrackingScreen = () => {
           <Text style={styles.subtitle}>Monitor your emotional well-being</Text>
         </View>
 
-        {state.moodEntries.length === 0 ? (
-          renderWelcomeMessage()
-        ) : (
-          <>
-            {renderMoodStats()}
-            {renderTrendsSection()}
-            {renderMoodHistory()}
-          </>
-        )}
-
         <View style={styles.actionContainer}>
           <TouchableOpacity
             style={styles.recordButton}
@@ -550,6 +562,17 @@ const MoodTrackingScreen = () => {
             <Text style={styles.recordButtonText}>Record Mood Now</Text>
           </TouchableOpacity>
         </View>
+
+        {state.moodEntries.length === 0 ? (
+          renderWelcomeMessage()
+        ) : (
+          <>
+            {renderMoodStats()}
+            {renderTrendsToggleButton()}
+            {renderTrendsSection()}
+            {renderMoodHistory()}
+          </>
+        )}
       </ScrollView>
 
       {renderMoodModal()}
@@ -908,6 +931,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     marginRight: 4,
+  },
+  trendsToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  trendsToggleText: {
+    color: '#6366f1',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
   },
   miniChart: {
     alignItems: 'center',

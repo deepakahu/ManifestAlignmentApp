@@ -64,7 +64,7 @@ export class NotificationService {
         lightColor: '#FF231F7C',
         sound: 'default', // Use system default sound
         enableVibrate: true,
-        bypassDnd: false,
+        bypassDnd: true,
         showBadge: true,
       });
     }
