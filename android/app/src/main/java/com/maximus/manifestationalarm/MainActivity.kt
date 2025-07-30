@@ -1,4 +1,4 @@
-package com.manifestationalarm.app
+package com.maximus.manifestationalarm
 
 import android.os.Build
 import android.os.Bundle

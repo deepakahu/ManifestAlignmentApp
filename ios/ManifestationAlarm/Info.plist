@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>manifestationalarm</string>
-          <string>com.manifestationalarm.app</string>
+          <string>com.maximus.manifestationalarm</string>
         </array>
       </dict>
     </array>

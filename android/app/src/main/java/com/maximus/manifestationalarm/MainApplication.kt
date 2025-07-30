@@ -1,4 +1,4 @@
-package com.manifestationalarm.app
+package com.maximus.manifestationalarm
 
 import android.app.Application
 import android.content.res.Configuration
