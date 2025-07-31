@@ -11,12 +11,12 @@
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		927E0DC725E840B09B7F1162 /* Ambient Piano.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 27D94368E5F9454B8460529B /* Ambient Piano.mp3 */; };
-		DFFA9A2DAA144718B6CF0006 /* Singing Bowl.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1BD636E6A5E442C4ACE24480 /* Singing Bowl.mp3 */; };
-		093DE859159D4372A293A164 /* Singing Bowl Hit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AC4A7B6FFDD849CEB2F125C8 /* Singing Bowl Hit.mp3 */; };
-		B8D53BE91AE84772948B2063 /* Tibetan Bowl Low.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 00558ADFA039497B8AC31BF8 /* Tibetan Bowl Low.mp3 */; };
-		C22C10A884B94244A2090E07 /* Calm Music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1D435F04F1DD4422800F7B0B /* Calm Music.mp3 */; };
-		A13E11C984334FDFAF5C85A1 /* Relaxing Guitar.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = F6A42D0168D948CAA5DBCC41 /* Relaxing Guitar.mp3 */; };
+		AFCB3CFCA6834FC9AD6B86FB /* Ambient Piano.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4A2E722F9E824E02A0092D6F /* Ambient Piano.mp3 */; };
+		7BCF345AC5C644E98198549B /* Singing Bowl.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 03F75FD76F054193B5ACFDB8 /* Singing Bowl.mp3 */; };
+		3B760ADFE94A419FA311A33E /* Singing Bowl Hit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1AED3B4B480B4946BFD44099 /* Singing Bowl Hit.mp3 */; };
+		F7F9A94C105547359F217F4D /* Tibetan Bowl Low.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 603EDF2B9E6B47B3AE04AB72 /* Tibetan Bowl Low.mp3 */; };
+		CC30E85D63994902A6266C6D /* Calm Music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 271741EF3AD44C1DB76E8EC9 /* Calm Music.mp3 */; };
+		999FA2D36BCD4E30AD22D876 /* Relaxing Guitar.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E1A20FA3DAC44FF9BBDAFD8B /* Relaxing Guitar.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,12 +28,12 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ManifestationAlarm/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* ManifestationAlarm-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ManifestationAlarm-Bridging-Header.h"; path = "ManifestationAlarm/ManifestationAlarm-Bridging-Header.h"; sourceTree = "<group>"; };
-		27D94368E5F9454B8460529B /* Ambient Piano.mp3 */ = {isa = PBXFileReference; name = "Ambient Piano.mp3"; path = "ManifestationAlarm/Ambient Piano.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		1BD636E6A5E442C4ACE24480 /* Singing Bowl.mp3 */ = {isa = PBXFileReference; name = "Singing Bowl.mp3"; path = "ManifestationAlarm/Singing Bowl.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		AC4A7B6FFDD849CEB2F125C8 /* Singing Bowl Hit.mp3 */ = {isa = PBXFileReference; name = "Singing Bowl Hit.mp3"; path = "ManifestationAlarm/Singing Bowl Hit.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		00558ADFA039497B8AC31BF8 /* Tibetan Bowl Low.mp3 */ = {isa = PBXFileReference; name = "Tibetan Bowl Low.mp3"; path = "ManifestationAlarm/Tibetan Bowl Low.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		1D435F04F1DD4422800F7B0B /* Calm Music.mp3 */ = {isa = PBXFileReference; name = "Calm Music.mp3"; path = "ManifestationAlarm/Calm Music.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		F6A42D0168D948CAA5DBCC41 /* Relaxing Guitar.mp3 */ = {isa = PBXFileReference; name = "Relaxing Guitar.mp3"; path = "ManifestationAlarm/Relaxing Guitar.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		4A2E722F9E824E02A0092D6F /* Ambient Piano.mp3 */ = {isa = PBXFileReference; name = "Ambient Piano.mp3"; path = "ManifestationAlarm/Ambient Piano.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		03F75FD76F054193B5ACFDB8 /* Singing Bowl.mp3 */ = {isa = PBXFileReference; name = "Singing Bowl.mp3"; path = "ManifestationAlarm/Singing Bowl.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		1AED3B4B480B4946BFD44099 /* Singing Bowl Hit.mp3 */ = {isa = PBXFileReference; name = "Singing Bowl Hit.mp3"; path = "ManifestationAlarm/Singing Bowl Hit.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		603EDF2B9E6B47B3AE04AB72 /* Tibetan Bowl Low.mp3 */ = {isa = PBXFileReference; name = "Tibetan Bowl Low.mp3"; path = "ManifestationAlarm/Tibetan Bowl Low.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		271741EF3AD44C1DB76E8EC9 /* Calm Music.mp3 */ = {isa = PBXFileReference; name = "Calm Music.mp3"; path = "ManifestationAlarm/Calm Music.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E1A20FA3DAC44FF9BBDAFD8B /* Relaxing Guitar.mp3 */ = {isa = PBXFileReference; name = "Relaxing Guitar.mp3"; path = "ManifestationAlarm/Relaxing Guitar.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,12 +56,12 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				27D94368E5F9454B8460529B /* Ambient Piano.mp3 */,
-				1BD636E6A5E442C4ACE24480 /* Singing Bowl.mp3 */,
-				AC4A7B6FFDD849CEB2F125C8 /* Singing Bowl Hit.mp3 */,
-				00558ADFA039497B8AC31BF8 /* Tibetan Bowl Low.mp3 */,
-				1D435F04F1DD4422800F7B0B /* Calm Music.mp3 */,
-				F6A42D0168D948CAA5DBCC41 /* Relaxing Guitar.mp3 */,
+				4A2E722F9E824E02A0092D6F /* Ambient Piano.mp3 */,
+				03F75FD76F054193B5ACFDB8 /* Singing Bowl.mp3 */,
+				1AED3B4B480B4946BFD44099 /* Singing Bowl Hit.mp3 */,
+				603EDF2B9E6B47B3AE04AB72 /* Tibetan Bowl Low.mp3 */,
+				271741EF3AD44C1DB76E8EC9 /* Calm Music.mp3 */,
+				E1A20FA3DAC44FF9BBDAFD8B /* Relaxing Guitar.mp3 */,
 			);
 			name = ManifestationAlarm;
 			sourceTree = "<group>";
@@ -173,12 +173,12 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				927E0DC725E840B09B7F1162 /* Ambient Piano.mp3 in Resources */,
-				DFFA9A2DAA144718B6CF0006 /* Singing Bowl.mp3 in Resources */,
-				093DE859159D4372A293A164 /* Singing Bowl Hit.mp3 in Resources */,
-				B8D53BE91AE84772948B2063 /* Tibetan Bowl Low.mp3 in Resources */,
-				C22C10A884B94244A2090E07 /* Calm Music.mp3 in Resources */,
-				A13E11C984334FDFAF5C85A1 /* Relaxing Guitar.mp3 in Resources */,
+				AFCB3CFCA6834FC9AD6B86FB /* Ambient Piano.mp3 in Resources */,
+				7BCF345AC5C644E98198549B /* Singing Bowl.mp3 in Resources */,
+				3B760ADFE94A419FA311A33E /* Singing Bowl Hit.mp3 in Resources */,
+				F7F9A94C105547359F217F4D /* Tibetan Bowl Low.mp3 in Resources */,
+				CC30E85D63994902A6266C6D /* Calm Music.mp3 in Resources */,
+				999FA2D36BCD4E30AD22D876 /* Relaxing Guitar.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
