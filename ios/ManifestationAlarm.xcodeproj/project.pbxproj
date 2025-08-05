@@ -14,13 +14,13 @@
 		96905EF65AED1B983A6B3ABC /* libPods-ManifestationAlarm.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 58EEBF8E8E6FB1BC6CAF49B5 /* libPods-ManifestationAlarm.a */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		CF50A153519A4825BC841D23 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FB7B7890B34AD0980710B4 /* noop-file.swift */; };
-		168B00C92AA443D695B036F9 /* ambient_piano.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 0C974D9760B34F40B05480BD /* ambient_piano.mp3 */; };
-		68FBC798B9B647AC822FB80F /* singing_bowl.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B95CBF8508AB4BCD8381D962 /* singing_bowl.mp3 */; };
-		F40A3F1B78BC4F59969A9C92 /* singing_bowl_hit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3BF07CFBDC1410A9168F4E6 /* singing_bowl_hit.mp3 */; };
-		4E9728E7685F4A6C82665C0E /* tibetan_bowl_low.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B7617554F70543ECA2BB1A19 /* tibetan_bowl_low.mp3 */; };
-		45538CF191134CA4AA77E2A8 /* calm_music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = C947B0D9B2D84FB494807073 /* calm_music.mp3 */; };
-		F5F97D733C5A419F834442D8 /* relaxing_guitar.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 256E2D17164648CDA8DE3B78 /* relaxing_guitar.mp3 */; };
+		C383484137E644D3A15285A0 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3427DFB253F44A2AA77BE98A /* noop-file.swift */; };
+		11667E24390343DDB4075386 /* ambient_piano.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 0AFCAED4F43648A5B0C5B264 /* ambient_piano.mp3 */; };
+		54E9CEEE10884573A9F51014 /* singing_bowl.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 26E0F470171B4AECA2CEDE35 /* singing_bowl.mp3 */; };
+		D39DBFA466E34D1C904CA68C /* singing_bowl_hit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 52EF4EC6EBB047C587A31C60 /* singing_bowl_hit.mp3 */; };
+		9AAEA044572B4FD99BEE0F9B /* tibetan_bowl_low.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 113622324130463C920F6F35 /* tibetan_bowl_low.mp3 */; };
+		76F1A4DBE0C24BE2AA14F736 /* calm_music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7CD35A610ECA4E6DAF2EBC88 /* calm_music.mp3 */; };
+		918C48A3F6FA4BFCAD25F568 /* relaxing_guitar.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9195A7BEB5D5496CAA564311 /* relaxing_guitar.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,14 +37,14 @@
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ManifestationAlarm/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		E7FB7B7890B34AD0980710B4 /* noop-file.swift */ = {isa = PBXFileReference; name = "noop-file.swift"; path = "ManifestationAlarm/noop-file.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
-		ABFD355B048B4282BEA3C5A2 /* ManifestationAlarm-Bridging-Header.h */ = {isa = PBXFileReference; name = "ManifestationAlarm-Bridging-Header.h"; path = "ManifestationAlarm/ManifestationAlarm-Bridging-Header.h"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; explicitFileType = undefined; includeInIndex = 0; };
-		0C974D9760B34F40B05480BD /* ambient_piano.mp3 */ = {isa = PBXFileReference; name = "ambient_piano.mp3"; path = "ManifestationAlarm/ambient_piano.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		B95CBF8508AB4BCD8381D962 /* singing_bowl.mp3 */ = {isa = PBXFileReference; name = "singing_bowl.mp3"; path = "ManifestationAlarm/singing_bowl.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		D3BF07CFBDC1410A9168F4E6 /* singing_bowl_hit.mp3 */ = {isa = PBXFileReference; name = "singing_bowl_hit.mp3"; path = "ManifestationAlarm/singing_bowl_hit.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		B7617554F70543ECA2BB1A19 /* tibetan_bowl_low.mp3 */ = {isa = PBXFileReference; name = "tibetan_bowl_low.mp3"; path = "ManifestationAlarm/tibetan_bowl_low.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		C947B0D9B2D84FB494807073 /* calm_music.mp3 */ = {isa = PBXFileReference; name = "calm_music.mp3"; path = "ManifestationAlarm/calm_music.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		256E2D17164648CDA8DE3B78 /* relaxing_guitar.mp3 */ = {isa = PBXFileReference; name = "relaxing_guitar.mp3"; path = "ManifestationAlarm/relaxing_guitar.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3427DFB253F44A2AA77BE98A /* noop-file.swift */ = {isa = PBXFileReference; name = "noop-file.swift"; path = "ManifestationAlarm/noop-file.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		3390A09ADD3743668D35679B /* ManifestationAlarm-Bridging-Header.h */ = {isa = PBXFileReference; name = "ManifestationAlarm-Bridging-Header.h"; path = "ManifestationAlarm/ManifestationAlarm-Bridging-Header.h"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; explicitFileType = undefined; includeInIndex = 0; };
+		0AFCAED4F43648A5B0C5B264 /* ambient_piano.mp3 */ = {isa = PBXFileReference; name = "ambient_piano.mp3"; path = "ManifestationAlarm/ambient_piano.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		26E0F470171B4AECA2CEDE35 /* singing_bowl.mp3 */ = {isa = PBXFileReference; name = "singing_bowl.mp3"; path = "ManifestationAlarm/singing_bowl.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		52EF4EC6EBB047C587A31C60 /* singing_bowl_hit.mp3 */ = {isa = PBXFileReference; name = "singing_bowl_hit.mp3"; path = "ManifestationAlarm/singing_bowl_hit.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		113622324130463C920F6F35 /* tibetan_bowl_low.mp3 */ = {isa = PBXFileReference; name = "tibetan_bowl_low.mp3"; path = "ManifestationAlarm/tibetan_bowl_low.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		7CD35A610ECA4E6DAF2EBC88 /* calm_music.mp3 */ = {isa = PBXFileReference; name = "calm_music.mp3"; path = "ManifestationAlarm/calm_music.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9195A7BEB5D5496CAA564311 /* relaxing_guitar.mp3 */ = {isa = PBXFileReference; name = "relaxing_guitar.mp3"; path = "ManifestationAlarm/relaxing_guitar.mp3"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,14 +69,14 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				E7FB7B7890B34AD0980710B4 /* noop-file.swift */,
-				ABFD355B048B4282BEA3C5A2 /* ManifestationAlarm-Bridging-Header.h */,
-				0C974D9760B34F40B05480BD /* ambient_piano.mp3 */,
-				B95CBF8508AB4BCD8381D962 /* singing_bowl.mp3 */,
-				D3BF07CFBDC1410A9168F4E6 /* singing_bowl_hit.mp3 */,
-				B7617554F70543ECA2BB1A19 /* tibetan_bowl_low.mp3 */,
-				C947B0D9B2D84FB494807073 /* calm_music.mp3 */,
-				256E2D17164648CDA8DE3B78 /* relaxing_guitar.mp3 */,
+				3427DFB253F44A2AA77BE98A /* noop-file.swift */,
+				3390A09ADD3743668D35679B /* ManifestationAlarm-Bridging-Header.h */,
+				0AFCAED4F43648A5B0C5B264 /* ambient_piano.mp3 */,
+				26E0F470171B4AECA2CEDE35 /* singing_bowl.mp3 */,
+				52EF4EC6EBB047C587A31C60 /* singing_bowl_hit.mp3 */,
+				113622324130463C920F6F35 /* tibetan_bowl_low.mp3 */,
+				7CD35A610ECA4E6DAF2EBC88 /* calm_music.mp3 */,
+				9195A7BEB5D5496CAA564311 /* relaxing_guitar.mp3 */,
 			);
 			name = ManifestationAlarm;
 			sourceTree = "<group>";
@@ -216,13 +216,13 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				267BF2B83ACB4EDDAB56BC39 /* ManifestationAlarm-Bridging-Header.h in Resources */,
-				168B00C92AA443D695B036F9 /* ambient_piano.mp3 in Resources */,
-				68FBC798B9B647AC822FB80F /* singing_bowl.mp3 in Resources */,
-				F40A3F1B78BC4F59969A9C92 /* singing_bowl_hit.mp3 in Resources */,
-				4E9728E7685F4A6C82665C0E /* tibetan_bowl_low.mp3 in Resources */,
-				45538CF191134CA4AA77E2A8 /* calm_music.mp3 in Resources */,
-				F5F97D733C5A419F834442D8 /* relaxing_guitar.mp3 in Resources */,
+				FB2A0D0D3E8B41999E0FC721 /* ManifestationAlarm-Bridging-Header.h in Resources */,
+				11667E24390343DDB4075386 /* ambient_piano.mp3 in Resources */,
+				54E9CEEE10884573A9F51014 /* singing_bowl.mp3 in Resources */,
+				D39DBFA466E34D1C904CA68C /* singing_bowl_hit.mp3 in Resources */,
+				9AAEA044572B4FD99BEE0F9B /* tibetan_bowl_low.mp3 in Resources */,
+				76F1A4DBE0C24BE2AA14F736 /* calm_music.mp3 in Resources */,
+				918C48A3F6FA4BFCAD25F568 /* relaxing_guitar.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -298,7 +298,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */,
-				CF50A153519A4825BC841D23 /* noop-file.swift in Sources */,
+				C383484137E644D3A15285A0 /* noop-file.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
