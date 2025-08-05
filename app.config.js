@@ -16,7 +16,7 @@ export default {
       backgroundColor: "#ffffff"
     },
     ios: {
-      bundleIdentifier: 'com.maximus.manifestationalarm',
+      bundleIdentifier: 'com.manifestationalarm.app',
       supportsTablet: true,
       infoPlist: {
         UIBackgroundModes: ['audio', 'background-fetch'],
@@ -25,7 +25,7 @@ export default {
       },
     },
     android: {
-      package: "com.maximus.manifestationalarm",
+      package: "com.manifestationalarm.app",
       edgeToEdge: true,
       versionCode: 6, 
       adaptiveIcon: {
