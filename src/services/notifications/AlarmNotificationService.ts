@@ -156,12 +156,12 @@ export class AlarmNotificationService {
       // Map custom sound types to file names
       const getSoundFile = (type: string) => {
         const soundMap: Record<string, string> = {
-          'ambient-piano': Platform.OS === 'ios' ? 'Ambient Piano.mp3' : 'ambient_piano',
-          'singing-bowl': Platform.OS === 'ios' ? 'Singing Bowl.mp3' : 'singing_bowl',
-          'singing-bowl-hit': Platform.OS === 'ios' ? 'Singing Bowl Hit.mp3' : 'singing_bowl_hit',
-          'tibetan-bowl-low': Platform.OS === 'ios' ? 'Tibetan Bowl Low.mp3' : 'tibetan_bowl_low',
-          'calm-music': Platform.OS === 'ios' ? 'Calm Music.mp3' : 'calm_music',
-          'relaxing-guitar': Platform.OS === 'ios' ? 'Relaxing Guitar.mp3' : 'relaxing_guitar',
+          'ambient-piano': Platform.OS === 'ios' ? 'ambient_piano.mp3' : 'ambient_piano',
+          'singing-bowl': Platform.OS === 'ios' ? 'singing_bowl.mp3' : 'singing_bowl',
+          'singing-bowl-hit': Platform.OS === 'ios' ? 'singing_bowl_hit.mp3' : 'singing_bowl_hit',
+          'tibetan-bowl-low': Platform.OS === 'ios' ? 'tibetan_bowl_low.mp3' : 'tibetan_bowl_low',
+          'calm-music': Platform.OS === 'ios' ? 'calm_music.mp3' : 'calm_music',
+          'relaxing-guitar': Platform.OS === 'ios' ? 'relaxing_guitar.mp3' : 'relaxing_guitar',
         };
         return soundMap[type] || 'default';
       };

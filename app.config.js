@@ -60,12 +60,12 @@ export default {
       icon: "./assets/images/icons/icon.png",
       color: "#6366f1",
       sounds: [
-        "./assets/sounds/Ambient Piano.mp3",
-        "./assets/sounds/Singing Bowl.mp3",
-        "./assets/sounds/Singing Bowl Hit.mp3",
-        "./assets/sounds/Tibetan Bowl Low.mp3",
-        "./assets/sounds/Calm Music.mp3",
-        "./assets/sounds/Relaxing Guitar.mp3"
+        "./assets/sounds/ambient_piano.mp3",
+        "./assets/sounds/singing_bowl.mp3",
+        "./assets/sounds/singing_bowl_hit.mp3",
+        "./assets/sounds/tibetan_bowl_low.mp3",
+        "./assets/sounds/calm_music.mp3",
+        "./assets/sounds/relaxing_guitar.mp3"
       ]
     },
     plugins: [
@@ -75,12 +75,12 @@ export default {
           icon: "./assets/images/icons/icon.png",
           color: "#6366f1",
           sounds: [
-            "./assets/sounds/Ambient Piano.mp3",
-            "./assets/sounds/Singing Bowl.mp3",
-            "./assets/sounds/Singing Bowl Hit.mp3",
-            "./assets/sounds/Tibetan Bowl Low.mp3",
-            "./assets/sounds/Calm Music.mp3",
-            "./assets/sounds/Relaxing Guitar.mp3"
+           "./assets/sounds/ambient_piano.mp3",
+          "./assets/sounds/singing_bowl.mp3",
+          "./assets/sounds/singing_bowl_hit.mp3",
+          "./assets/sounds/tibetan_bowl_low.mp3",
+          "./assets/sounds/calm_music.mp3",
+          "./assets/sounds/relaxing_guitar.mp3"
           ]
         }
       ]
