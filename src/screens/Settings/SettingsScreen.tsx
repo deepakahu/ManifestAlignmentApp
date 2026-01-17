@@ -5,6 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {StorageService} from '../../services/storage/StorageService';
 import {AlarmService} from '../../services/AlarmService';
 import {AlarmDebugger} from '../../utils/alarmDebug';
+import {AlarmDiagnostics} from '../../utils/alarmDiagnostics';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -58,14 +59,25 @@ const SettingsScreen = () => {
 
   const handleDiagnostics = async () => {
     try {
-      const issues = await AlarmDebugger.runDiagnostics();
-      const report = AlarmDebugger.formatDiagnosticReport(issues);
-      Alert.alert('Alarm Diagnostics', report, [
-        { text: 'OK' },
-        { text: 'Test Alarm', onPress: () => AlarmDebugger.testAlarmImmediately() }
-      ]);
+      await AlarmDiagnostics.runDiagnostics();
     } catch (error) {
       Alert.alert('Error', 'Failed to run diagnostics');
+    }
+  };
+
+  const handleQuickTest = async () => {
+    try {
+      await AlarmDiagnostics.quickTest();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to run quick test');
+    }
+  };
+
+  const handleAutoFix = async () => {
+    try {
+      await AlarmDiagnostics.autoFix();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to auto-fix');
     }
   };
 
@@ -81,6 +93,25 @@ const SettingsScreen = () => {
       </View>
 
       <View style={styles.content}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Subscription</Text>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => navigation.navigate('Subscription' as never)}>
+            <View style={styles.settingIcon}>
+              <Ionicons name="diamond" size={20} color="#6366f1" />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingLabel}>Manage Subscription</Text>
+              <Text style={styles.settingDescription}>
+                View plans, apply coupons, and manage your premium access
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Data Management</Text>
           
@@ -154,6 +185,32 @@ const SettingsScreen = () => {
             </View>
             <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem} onPress={handleQuickTest}>
+            <View style={styles.settingIcon}>
+              <Ionicons name="flash" size={20} color="#10b981" />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingLabel}>Quick Alarm Test</Text>
+              <Text style={styles.settingDescription}>
+                Test alarm in 10 seconds
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem} onPress={handleAutoFix}>
+            <View style={styles.settingIcon}>
+              <Ionicons name="construct" size={20} color="#6366f1" />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingLabel}>Auto-Fix Alarms</Text>
+              <Text style={styles.settingDescription}>
+                Reset and re-initialize alarm system
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+          </TouchableOpacity>
         </View>
 
 
@@ -166,7 +223,7 @@ const SettingsScreen = () => {
             </View>
             <View style={styles.settingContent}>
               <Text style={styles.settingLabel}>Version</Text>
-              <Text style={styles.settingDescription}>1.0.6</Text>
+              <Text style={styles.settingDescription}>1.0.7</Text>
             </View>
           </View>
 

@@ -27,10 +27,12 @@ import ManifestationViewScreen from '../screens/Manifestation/ManifestationViewS
 import ManifestationReadingScreen from '../screens/Manifestation/ManifestationReadingScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import SettingsScreen from '../screens/Settings/SettingsScreen';
+import SubscriptionScreen from '../screens/Settings/SubscriptionScreen';
 import AlarmSetupScreen from '../screens/AlarmSetup/AlarmSetupScreen';
 import AlarmListScreen from '../screens/AlarmSetup/AlarmListScreen';
 import MoodRecordingScreen from '../screens/MoodRecording/MoodRecordingScreen';
 import {AlarmRingingScreen} from '../screens/AlarmRinging/AlarmRingingScreen';
+import {PhysiologyShiftScreen} from '../screens/FTBA/PhysiologyShiftScreen';
 
 import {RootStackParamList, MainTabParamList} from '../types';
 
@@ -95,9 +97,11 @@ const AppNavigator = () => {
         },
         MoodRecording: 'mood-recording/:alarmId?',
         Settings: 'settings',
+        Subscription: 'subscription',
         AlarmList: 'alarms',
         AlarmSetup: 'alarm-setup',
         AlarmRinging: 'alarm-ringing/:alarmId',
+        PhysiologyShift: 'physiology-shift/:alarmId',
         ManifestationCreate: 'manifestation-create',
         ManifestationView: 'manifestation-view',
         ManifestationReading: 'manifestation-reading',
@@ -123,9 +127,11 @@ const AppNavigator = () => {
       <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen name="MainTabs" component={TabNavigator} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Subscription" component={SubscriptionScreen} />
         <Stack.Screen name="AlarmList" component={AlarmListScreen} />
         <Stack.Screen name="AlarmSetup" component={AlarmSetupScreen} />
         <Stack.Screen name="AlarmRinging" component={AlarmRingingScreen} />
+        <Stack.Screen name="PhysiologyShift" component={PhysiologyShiftScreen} />
         <Stack.Screen name="MoodRecording" component={MoodRecordingScreen} />
         <Stack.Screen name="ManifestationCreate" component={ManifestationCreateScreen} />
         <Stack.Screen name="ManifestationView" component={ManifestationViewScreen} />

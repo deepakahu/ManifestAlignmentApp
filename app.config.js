@@ -4,11 +4,11 @@ export default {
   expo: {
     name: "Manifestation Alarm",
     slug: "manifestation-alarm",
-    version: "1.0.6",
+    owner: "maximus-consult",
+    version: "1.0.22",
     orientation: "portrait",
     icon: "./assets/images/icons/icon.png",
     userInterfaceStyle: "light",
-    newArchEnabled: false,
     scheme: "manifestationalarm",
     splash: {
       image: "./assets/images/splash/splash-icon.png",
@@ -26,8 +26,7 @@ export default {
     },
     android: {
       package: "com.manifestationalarm.app",
-      edgeToEdge: true,
-      versionCode: 6, 
+      versionCode: 23,
       adaptiveIcon: {
         foregroundImage: "./assets/images/icons/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -41,6 +40,9 @@ export default {
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.USE_FULL_SCREEN_INTENT"
       ],
+      config: {
+        usesCleartextTraffic: false
+      },
       intentFilters: [
         {
           action: "VIEW",
@@ -56,19 +58,26 @@ export default {
     web: {
       favicon: "./assets/images/icons/favicon.png"
     },
-    notifications: {
-      icon: "./assets/images/icons/icon.png",
-      color: "#6366f1",
-      sounds: [
-        "./assets/sounds/ambient_piano.mp3",
-        "./assets/sounds/singing_bowl.mp3",
-        "./assets/sounds/singing_bowl_hit.mp3",
-        "./assets/sounds/tibetan_bowl_low.mp3",
-        "./assets/sounds/calm_music.mp3",
-        "./assets/sounds/relaxing_guitar.mp3"
-      ]
-    },
     plugins: [
+      "./plugins/withExactAlarmPermission.js",
+      "./plugins/withAndroid16KBSupport.js",
+      "./plugins/withAlarmWindowFlags.js",
+      "expo-font",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-build-properties",
+        {
+          android: {
+            compileSdkVersion: 35,
+            targetSdkVersion: 35,
+            buildToolsVersion: "35.0.0",
+            ndkVersion: "28.0.12433566",
+            useLegacyPackaging: false,
+            allowNativeHeapPointerTagging: false,
+            extraProguardRules: "-android-api-level 35"
+          }
+        }
+      ],
       [
         "expo-notifications",
         {
@@ -88,7 +97,9 @@ export default {
     extra: {
       eas: {
         projectId: "e9487115-fde1-4108-b8c4-7e17329fee7c"
-      }
+      },
+      revenueCatAndroidApiKey: process.env.REVENUECAT_ANDROID_API_KEY,
+      revenueCatIosApiKey: process.env.REVENUECAT_IOS_API_KEY
     }
   }
 };

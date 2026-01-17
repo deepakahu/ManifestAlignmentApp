@@ -12,12 +12,14 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Audio } from 'expo-av';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { AlarmService } from '../../services/AlarmService';
 
 type RootStackParamList = {
   AlarmRinging: {
     alarmId: string;
     alarmName: string;
+    soundType?: string;
     fromNotification?: boolean;
   };
   MoodRecording: {
@@ -26,6 +28,11 @@ type RootStackParamList = {
     fromAlarm: boolean;
   };
   ManifestationReading: {
+    fromAlarm: boolean;
+  };
+  PhysiologyShift: {
+    alarmId: string;
+    alarmName: string;
     fromAlarm: boolean;
   };
 };
@@ -38,12 +45,21 @@ const { width } = Dimensions.get('window');
 export const AlarmRingingScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<AlarmRingingRouteProp>();
-  const { alarmId, alarmName, fromNotification } = route.params;
+  const { alarmId, alarmName, soundType, fromNotification } = route.params;
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
   const sound = useRef<Audio.Sound | null>(null);
+
+  // Keep screen awake while alarm is ringing
+  useEffect(() => {
+    activateKeepAwakeAsync('alarm-ringing');
+
+    return () => {
+      deactivateKeepAwake('alarm-ringing');
+    };
+  }, []);
 
   // Update time every second
   useEffect(() => {
@@ -124,10 +140,34 @@ export const AlarmRingingScreen: React.FC = () => {
 
   const playAlarmSound = async () => {
     try {
-      // Try to play system notification sound instead of custom file
-      // Since we don't have the asset file, we'll skip this for now
-      // The notification itself should handle the sound
-      console.log('Alarm sound handled by notification system');
+      // Set audio mode for playback
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+        shouldDuckAndroid: false,
+      });
+
+      // Map sound types to files
+      const soundFiles: Record<string, any> = {
+        'default': require('../../../assets/sounds/default-alarm.mp3'),
+        'ambient-piano': require('../../../assets/sounds/ambient_piano.mp3'),
+        'singing-bowl': require('../../../assets/sounds/singing_bowl.mp3'),
+        'singing-bowl-hit': require('../../../assets/sounds/singing_bowl_hit.mp3'),
+        'tibetan-bowl-low': require('../../../assets/sounds/tibetan_bowl_low.mp3'),
+        'calm-music': require('../../../assets/sounds/calm_music.mp3'),
+        'relaxing-guitar': require('../../../assets/sounds/relaxing_guitar.mp3'),
+      };
+
+      const soundFile = soundFiles[soundType || 'default'] || soundFiles['default'];
+
+      // Load and play the sound
+      const { sound: loadedSound } = await Audio.Sound.createAsync(
+        soundFile,
+        { shouldPlay: true, isLooping: true, volume: 1.0 }
+      );
+
+      sound.current = loadedSound;
+      console.log('✅ Alarm sound playing:', soundType || 'default');
     } catch (error) {
       console.error('Error playing alarm sound:', error);
     }
@@ -141,6 +181,17 @@ export const AlarmRingingScreen: React.FC = () => {
     }
   };
 
+  const handleSnooze = async (minutes: 15 | 30) => {
+    await stopAlarmSound();
+    Vibration.cancel();
+
+    // Snooze the alarm for specified minutes
+    const snoozeTime = new Date(Date.now() + minutes * 60 * 1000);
+    await AlarmService.snoozeAlarm(alarmId, snoozeTime);
+
+    navigation.goBack();
+  };
+
   const handleDismiss = async () => {
     await stopAlarmSound();
     Vibration.cancel();
@@ -151,6 +202,16 @@ export const AlarmRingingScreen: React.FC = () => {
     await stopAlarmSound();
     Vibration.cancel();
     navigation.replace('MoodRecording', {
+      alarmId,
+      alarmName,
+      fromAlarm: true,
+    });
+  };
+
+  const handleManifestNow = async () => {
+    await stopAlarmSound();
+    Vibration.cancel();
+    navigation.replace('PhysiologyShift', {
       alarmId,
       alarmName,
       fromAlarm: true,
@@ -208,6 +269,15 @@ export const AlarmRingingScreen: React.FC = () => {
       {/* Action Buttons */}
       <View style={styles.actionSection}>
         <TouchableOpacity
+          style={[styles.actionButton, styles.manifestNowButton]}
+          onPress={handleManifestNow}
+          activeOpacity={0.8}
+        >
+          <MaterialIcons name="bolt" size={32} color="#FFFFFF" />
+          <Text style={styles.actionButtonText}>Manifest Now</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.actionButton, styles.moodButton]}
           onPress={handleRecordMood}
           activeOpacity={0.8}
@@ -216,14 +286,26 @@ export const AlarmRingingScreen: React.FC = () => {
           <Text style={styles.actionButtonText}>Record Mood</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.manifestationButton]}
-          onPress={handleReadManifestations}
-          activeOpacity={0.8}
-        >
-          <MaterialIcons name="auto-stories" size={32} color="#FFFFFF" />
-          <Text style={styles.actionButtonText}>Read Manifestations</Text>
-        </TouchableOpacity>
+        {/* Snooze Options */}
+        <View style={styles.snoozeContainer}>
+          <TouchableOpacity
+            style={[styles.snoozeButton, styles.snooze15]}
+            onPress={() => handleSnooze(15)}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons name="snooze" size={20} color="#FFFFFF" />
+            <Text style={styles.snoozeButtonText}>15 min</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.snoozeButton, styles.snooze30]}
+            onPress={() => handleSnooze(30)}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons name="snooze" size={20} color="#FFFFFF" />
+            <Text style={styles.snoozeButtonText}>30 min</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Dismiss Button */}
@@ -332,11 +414,40 @@ const styles = StyleSheet.create({
   moodButton: {
     backgroundColor: '#FF6B6B',
   },
+  manifestNowButton: {
+    backgroundColor: '#10b981',
+  },
   manifestationButton: {
     backgroundColor: '#6366f1',
   },
   actionButtonText: {
     fontSize: 20,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  snoozeContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  snoozeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    gap: 8,
+  },
+  snooze15: {
+    backgroundColor: '#f59e0b',
+  },
+  snooze30: {
+    backgroundColor: '#8b5cf6',
+  },
+  snoozeButtonText: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
   },

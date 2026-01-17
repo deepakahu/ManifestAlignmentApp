@@ -24,6 +24,7 @@ const MoodRecordingScreen = () => {
   const alarmId = params?.alarmId as string | undefined;
   const alarmNameFromParams = params?.alarmName as string | undefined;
   const fromNotification = params?.fromNotification as boolean | undefined;
+  const fromAlarm = params?.fromAlarm as boolean | undefined;
   const timestamp = params?.timestamp as string | undefined;
   
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
@@ -108,7 +109,18 @@ const MoodRecordingScreen = () => {
         alarmId,
         alarmName,
         fromNotification,
+        fromAlarm,
       });
+
+      // If coming from FTBA alarm flow, automatically navigate to manifestation reading
+      if (fromAlarm) {
+        console.log('FTBA flow detected: auto-navigating to manifestation reading');
+        navigation.navigate('ManifestationReading' as never, {
+          moodEntryId: generateId(),
+          fromAlarm: true
+        } as never);
+        return;
+      }
 
       // Show YouTube link for low mood (< 4)
       if (selectedMood < 4) {

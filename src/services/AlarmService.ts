@@ -311,28 +311,56 @@ export class AlarmService {
     }
   }
 
+  static async snoozeAlarm(alarmId: string, snoozeUntil: Date): Promise<void> {
+    try {
+      const alarm = await this.getAlarmById(alarmId);
+      if (!alarm) {
+        console.error('Alarm not found for snooze');
+        return;
+      }
+
+      console.log(`😴 Snoozing alarm "${alarm.name}" until ${snoozeUntil.toLocaleString()}`);
+
+      // Schedule a one-time notification for the snooze time
+      const notificationId = await AlarmNotificationService.scheduleAlarmNotification(
+        alarmId,
+        '⏰ Snoozed Alarm!',
+        `${alarm.name} - Snooze time is up!`,
+        snoozeUntil,
+        alarm.soundType || 'default',
+        { alarmName: alarm.name, snoozed: true }
+      );
+
+      if (notificationId) {
+        console.log(`✅ Snooze alarm scheduled for ${snoozeUntil.toLocaleString()}`);
+      }
+    } catch (error) {
+      console.error('Error snoozing alarm:', error);
+    }
+  }
+
   static async recordAlarmTrigger(alarmId: string): Promise<void> {
     try {
       const now = new Date();
       await StorageService.updateAlarm(alarmId, {lastTriggered: now});
-      
+
       console.log(`⏰ Alarm ${alarmId} triggered at ${now.toLocaleString()}`);
-      
+
       // CRITICAL: Immediately reschedule for the next occurrence
       const alarm = await this.getAlarmById(alarmId);
       if (alarm && alarm.isEnabled) {
         console.log(`🔄 Auto-rescheduling ${alarm.name} for next occurrence...`);
-        
+
         // Update next trigger time first
         await this.updateAlarmNextTrigger(alarmId);
-        
+
         // Schedule next notifications immediately (no delay needed)
         try {
           await this.scheduleAlarmNotifications(alarm);
           console.log(`✅ Successfully rescheduled ${alarm.name}`);
         } catch (error) {
           console.error(`❌ Failed to reschedule ${alarm.name}:`, error);
-          
+
           // Retry once after a short delay
           setTimeout(async () => {
             try {
@@ -344,7 +372,7 @@ export class AlarmService {
           }, 1000);
         }
       }
-      
+
     } catch (error) {
       console.error('Error recording alarm trigger:', error);
     }

@@ -24,10 +24,13 @@ const ManifestationReadingScreen = () => {
   
   const params = route.params as any;
   const moodEntryId = params?.moodEntryId as string | undefined;
-  
+  const fromAlarm = params?.fromAlarm as boolean | undefined;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [readStartTime, setReadStartTime] = useState<Date>(new Date());
   const [cardStartTime, setCardStartTime] = useState<Date>(new Date());
+  const [isDoneButtonEnabled, setIsDoneButtonEnabled] = useState(!fromAlarm); // Disabled if from alarm
+  const [doneButtonCountdown, setDoneButtonCountdown] = useState(10);
   const translateX = useRef(new Animated.Value(0)).current;
 
   // Filter out manifestations without descriptions and not completed
@@ -37,8 +40,29 @@ const ManifestationReadingScreen = () => {
 
   useEffect(() => {
     setCardStartTime(new Date());
-    
+
   }, [currentIndex]);
+
+  // FTBA Flow: Disable Done button for 10 seconds to ensure user reads manifestations
+  useEffect(() => {
+    if (fromAlarm && !isDoneButtonEnabled) {
+      console.log('FTBA flow: Disabling Done button for 10 seconds');
+
+      const countdownTimer = setInterval(() => {
+        setDoneButtonCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownTimer);
+            setIsDoneButtonEnabled(true);
+            console.log('FTBA flow: Done button enabled');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(countdownTimer);
+    }
+  }, [fromAlarm, isDoneButtonEnabled]);
 
   const getCategoryColor = (category: string) => {
     const colors = {
@@ -198,8 +222,16 @@ const ManifestationReadingScreen = () => {
     <View style={[styles.container, { backgroundColor: primaryColor }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
-          <Ionicons name="close" size={24} color="#fff" />
+        <TouchableOpacity
+          style={[styles.doneButton, !isDoneButtonEnabled && styles.doneButtonDisabled]}
+          onPress={handleDone}
+          disabled={!isDoneButtonEnabled}
+        >
+          {!isDoneButtonEnabled ? (
+            <Text style={styles.countdownText}>{doneButtonCountdown}</Text>
+          ) : (
+            <Ionicons name="close" size={24} color="#fff" />
+          )}
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Manifestation Reading</Text>
         <View style={styles.headerSpacer} />
@@ -294,8 +326,21 @@ const ManifestationReadingScreen = () => {
 
       {/* Bottom Action */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.doneBottomButton} onPress={handleDone}>
-          <Text style={styles.doneBottomButtonText}>Done Reading</Text>
+        <TouchableOpacity
+          style={[styles.doneBottomButton, !isDoneButtonEnabled && styles.doneBottomButtonDisabled]}
+          onPress={handleDone}
+          disabled={!isDoneButtonEnabled}
+        >
+          {!isDoneButtonEnabled ? (
+            <View style={styles.doneButtonContent}>
+              <Ionicons name="time-outline" size={20} color="#ffffff80" />
+              <Text style={styles.doneBottomButtonTextDisabled}>
+                Read for {doneButtonCountdown} more {doneButtonCountdown === 1 ? 'second' : 'seconds'}
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.doneBottomButtonText}>Done Reading</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -315,6 +360,17 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     padding: 4,
+    minWidth: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  doneButtonDisabled: {
+    opacity: 0.6,
+  },
+  countdownText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
   },
   headerTitle: {
     flex: 1,
@@ -443,8 +499,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ffffff30',
   },
+  doneBottomButtonDisabled: {
+    backgroundColor: '#ffffff10',
+    borderColor: '#ffffff20',
+  },
+  doneButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   doneBottomButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  doneBottomButtonTextDisabled: {
+    color: '#ffffff80',
     fontSize: 16,
     fontWeight: '600',
   },

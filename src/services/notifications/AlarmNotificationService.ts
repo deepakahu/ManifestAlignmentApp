@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
-import { Platform, Alert } from 'react-native';
+import notifee, { AndroidImportance, AndroidCategory, TriggerType, EventType } from '@notifee/react-native';
+import { Platform, Alert, AppState } from 'react-native';
 import * as Device from 'expo-device';
 
 // Configure notification handler to show alerts even when app is in foreground
@@ -90,43 +91,45 @@ export class AlarmNotificationService {
 
   /**
    * Configure high-priority alarm notification channel for Android
+   * Uses @notifee for native AlarmManager support
    */
   static async configureAlarmChannel(): Promise<void> {
     if (Platform.OS === 'android') {
       try {
-        // Delete existing channel to ensure fresh configuration
-        await Notifications.deleteNotificationChannelAsync('alarm_channel');
-        console.log('Deleted existing alarm channel');
-        
-        // Create new alarm channel with maximum priority
-        await Notifications.setNotificationChannelAsync('alarm_channel', {
+        // Create alarm channel with @notifee (uses native AlarmManager)
+        const channelId = await notifee.createChannel({
+          id: 'alarm_channel',
           name: 'Alarm Notifications',
-          importance: Notifications.AndroidImportance.MAX, // Maximum importance for alarms
-          sound: 'default', // Will be overridden by custom sounds if specified
-          vibrationPattern: [0, 500, 250, 500, 250, 500], // Strong vibration pattern
-          lightColor: '#FF0000', // Red LED light
-          lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC, // Show on lock screen
-          bypassDnd: true, // CRITICAL: Bypass Do Not Disturb for alarms
-          enableVibrate: true,
-          enableLights: true,
-          showBadge: true,
+          importance: AndroidImportance.HIGH, // High importance for alarms
+          sound: 'default',
+          vibration: true,
+          vibrationPattern: [0, 500, 250, 500, 250, 500],
+          lights: true,
+          lightColor: '#FF0000',
+          bypassDnd: true, // CRITICAL: Bypass Do Not Disturb
           description: 'High-priority notifications for alarms that need immediate attention',
         });
         
-        console.log('✅ Alarm channel configured successfully');
+        console.log('✅ Alarm channel configured with @notifee:', channelId);
         
-        // Verify the channel was created
-        const channels = await Notifications.getNotificationChannelsAsync();
-        const alarmChannel = channels.find(c => c.id === 'alarm_channel');
-        
-        if (alarmChannel) {
-          console.log('✅ Alarm channel verified:', {
-            importance: alarmChannel.importance,
-            bypassDnd: alarmChannel.bypassDnd,
-            sound: alarmChannel.sound,
+        // Also configure expo-notifications channel for compatibility
+        try {
+          await Notifications.deleteNotificationChannelAsync('alarm_channel');
+          await Notifications.setNotificationChannelAsync('alarm_channel', {
+            name: 'Alarm Notifications',
+            importance: Notifications.AndroidImportance.MAX,
+            sound: 'default',
+            vibrationPattern: [0, 500, 250, 500, 250, 500],
+            lightColor: '#FF0000',
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+            bypassDnd: true,
+            enableVibrate: true,
+            enableLights: true,
+            showBadge: true,
+            description: 'High-priority notifications for alarms that need immediate attention',
           });
-        } else {
-          console.error('❌ Alarm channel not found after creation!');
+        } catch (expoError) {
+          console.warn('Could not configure expo-notifications channel:', expoError);
         }
       } catch (error) {
         console.error('❌ Failed to configure alarm channel:', error);
@@ -136,7 +139,8 @@ export class AlarmNotificationService {
   }
 
   /**
-   * Schedule an alarm notification
+   * Schedule an alarm notification using @notifee with native AlarmManager
+   * This uses AlarmManager.setExactAndAllowWhileIdle() for reliable alarms
    */
   static async scheduleAlarmNotification(
     alarmId: string,
@@ -168,46 +172,73 @@ export class AlarmNotificationService {
 
       const sound = getSoundFile(soundType);
 
-      // Prepare notification content
-      const notificationContent: Notifications.NotificationContentInput = {
-        title,
-        body,
-        sound,
-        priority: Notifications.AndroidNotificationPriority.MAX,
-        categoryIdentifier: Notifications.NotificationCategory.ALARM,
-        data: {
-          ...data,
-          alarmId,
-          type: 'alarm',
-          screen: 'alarm_ringing_screen',
-        },
-      };
-
-      // Android-specific properties
       if (Platform.OS === 'android') {
-        notificationContent.vibrate = [0, 500, 250, 500, 250, 500];
-        notificationContent.color = '#FF0000';
-        notificationContent.sticky = true; // Make notification harder to dismiss
+        // Use @notifee with AlarmManager for Android (reliable alarms)
+        const notificationId = await notifee.createTriggerNotification(
+          {
+            id: `${alarmId}-${triggerDate.getTime()}`,
+            title,
+            body,
+            android: {
+              channelId: 'alarm_channel',
+              importance: AndroidImportance.HIGH,
+              category: AndroidCategory.ALARM,
+              sound: sound,
+              vibrationPattern: [0, 500, 250, 500, 250, 500],
+              color: '#FF0000',
+              pressAction: {
+                id: 'default',
+                launchActivity: 'default',
+              },
+              fullScreenAction: {
+                id: 'default',
+              },
+              // CRITICAL: Use AlarmManager for exact timing
+              // This ensures alarms ring even when device is in Doze mode
+              triggerAlarmManager: true, // Uses AlarmManager.setExactAndAllowWhileIdle()
+            },
+            data: {
+              ...data,
+              alarmId,
+              type: 'alarm',
+              screen: 'alarm_ringing_screen',
+            },
+          },
+          {
+            type: TriggerType.TIMESTAMP,
+            timestamp: triggerDate.getTime(),
+          }
+        );
+
+        console.log(`✅ Alarm scheduled with AlarmManager: ${title} at ${triggerDate.toLocaleString()}`);
+        return notificationId;
+      } else {
+        // iOS: Use expo-notifications
+        const notificationContent: Notifications.NotificationContentInput = {
+          title,
+          body,
+          sound,
+          priority: Notifications.AndroidNotificationPriority.MAX,
+          categoryIdentifier: Notifications.NotificationCategory.ALARM,
+          badge: 1,
+          data: {
+            ...data,
+            alarmId,
+            type: 'alarm',
+            screen: 'alarm_ringing_screen',
+          },
+        };
+
+        const notificationId = await Notifications.scheduleNotificationAsync({
+          content: notificationContent,
+          trigger: {
+            date: triggerDate,
+          },
+        });
+
+        console.log(`Alarm scheduled (iOS): ${title} at ${triggerDate.toLocaleString()}`);
+        return notificationId;
       }
-
-      // iOS-specific properties
-      if (Platform.OS === 'ios') {
-        notificationContent.badge = 1;
-        notificationContent.interruptionLevel = 'timeSensitive'; // iOS 15+
-      }
-
-      // Schedule the notification
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: notificationContent,
-        trigger: {
-          date: triggerDate,
-          channelId: Platform.OS === 'android' ? 'alarm_channel' : undefined,
-        },
-      });
-
-      console.log(`Alarm scheduled: ${title} at ${triggerDate.toLocaleString()}`);
-      return notificationId;
-
     } catch (error) {
       console.error('Failed to schedule alarm notification:', error);
       return null;
@@ -216,41 +247,73 @@ export class AlarmNotificationService {
 
   /**
    * Setup notification response listeners
+   * Handles both @notifee and expo-notifications events
    */
   static setupNotificationListeners(): void {
-    // Handle notification received while app is foregrounded
+    // Handle @notifee events (Android alarms)
+    if (Platform.OS === 'android') {
+      notifee.onForegroundEvent(({ type, detail }) => {
+        console.log('@notifee foreground event:', type, detail);
+        
+        if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
+          const data = detail.notification?.data;
+          if (data?.type === 'alarm' && this.navigationRef?.current) {
+            this.navigateToAlarmScreen(data);
+          }
+        }
+      });
+
+      notifee.onBackgroundEvent(async ({ type, detail }) => {
+        console.log('@notifee background event:', type, detail);
+        
+        if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
+          const data = detail.notification?.data;
+          if (data?.type === 'alarm') {
+            // Handle background alarm trigger
+            console.log('Alarm triggered in background:', data);
+          }
+        }
+      });
+    }
+
+    // Handle expo-notifications events (iOS and fallback)
     Notifications.addNotificationReceivedListener((notification) => {
       console.log('Notification received in foreground:', notification);
       
       const { data } = notification.request.content;
       if (data?.type === 'alarm') {
-        // Could trigger an in-app alarm UI here
         this.handleAlarmTriggered(data);
       }
     });
 
-    // Handle notification response (user tapped notification)
     Notifications.addNotificationResponseReceivedListener((response) => {
       console.log('Notification response:', response);
       
       const { data } = response.notification.request.content;
       if (data?.screen === 'alarm_ringing_screen' && this.navigationRef?.current) {
-        // Navigate to alarm ringing screen
-        setTimeout(() => {
-          try {
-            this.navigationRef.current.navigate('AlarmRinging', {
-              alarmId: data.alarmId,
-              alarmName: data.alarmName || 'Alarm',
-              fromNotification: true,
-            });
-          } catch (error) {
-            console.error('Navigation failed:', error);
-            // Fallback: show an alert
-            Alert.alert('Alarm!', 'Your alarm is ringing!');
-          }
-        }, 100);
+        this.navigateToAlarmScreen(data);
       }
     });
+  }
+
+  /**
+   * Navigate to alarm ringing screen
+   */
+  private static navigateToAlarmScreen(data: any): void {
+    if (!this.navigationRef?.current) return;
+    
+    setTimeout(() => {
+      try {
+        this.navigationRef.current.navigate('AlarmRinging', {
+          alarmId: data.alarmId,
+          alarmName: data.alarmName || 'Alarm',
+          fromNotification: true,
+        });
+      } catch (error) {
+        console.error('Navigation failed:', error);
+        Alert.alert('Alarm!', 'Your alarm is ringing!');
+      }
+    }, 100);
   }
 
   /**
@@ -283,9 +346,15 @@ export class AlarmNotificationService {
 
   /**
    * Cancel a scheduled alarm notification
+   * Handles both @notifee and expo-notifications
    */
   static async cancelAlarmNotification(notificationId: string): Promise<void> {
     try {
+      if (Platform.OS === 'android') {
+        // Cancel @notifee notification
+        await notifee.cancelNotification(notificationId);
+      }
+      // Also cancel expo-notification for compatibility
       await Notifications.cancelScheduledNotificationAsync(notificationId);
       console.log(`Alarm notification cancelled: ${notificationId}`);
     } catch (error) {
@@ -295,11 +364,23 @@ export class AlarmNotificationService {
 
   /**
    * Get all scheduled alarm notifications
+   * Returns both @notifee and expo-notifications alarms
    */
-  static async getScheduledAlarmNotifications(): Promise<Notifications.NotificationRequest[]> {
+  static async getScheduledAlarmNotifications(): Promise<any[]> {
     try {
-      const allNotifications = await Notifications.getAllScheduledNotificationsAsync();
-      return allNotifications.filter(n => n.content.data?.type === 'alarm');
+      const notifications: any[] = [];
+      
+      if (Platform.OS === 'android') {
+        // Get @notifee scheduled notifications
+        const notifeeNotifications = await notifee.getTriggerNotifications();
+        notifications.push(...notifeeNotifications.filter(n => n.notification.data?.type === 'alarm'));
+      }
+      
+      // Get expo-notifications scheduled notifications
+      const expoNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      notifications.push(...expoNotifications.filter(n => n.content.data?.type === 'alarm'));
+      
+      return notifications;
     } catch (error) {
       console.error('Failed to get scheduled alarms:', error);
       return [];
@@ -308,9 +389,15 @@ export class AlarmNotificationService {
 
   /**
    * Cancel all scheduled notifications (for alarm service use)
+   * Cancels both @notifee and expo-notifications
    */
   static async cancelAllNotifications(): Promise<void> {
     try {
+      if (Platform.OS === 'android') {
+        // Cancel all @notifee notifications
+        await notifee.cancelAllNotifications();
+      }
+      // Cancel all expo-notifications
       await Notifications.cancelAllScheduledNotificationsAsync();
       console.log('✅ All notifications canceled');
     } catch (error) {

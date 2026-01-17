@@ -31,7 +31,8 @@
         "resourceClass": "medium",
         "buildType": "app-bundle",
         "env": {
-          "GRADLE_OPTS": "-Xmx4g -XX:MaxMetaspaceSize=1g"
+          "GRADLE_OPTS": "-Xmx4g -XX:MaxMetaspaceSize=1g",
+          "ANDROID_NDK_VERSION": "28.0.12433566"
         },
         "credentialsSource": "remote"
       }

@@ -74,8 +74,10 @@ export type RootStackParamList = {
   AlarmSetup: { alarm?: Alarm };
   AlarmList: undefined;
   AlarmRinging: { alarmId: string; alarmName: string; fromNotification?: boolean };
+  PhysiologyShift: { alarmId: string; alarmName: string; fromAlarm: boolean };
   MoodRecording: { alarmId?: string; alarmName?: string; fromAlarm?: boolean };
   Settings: undefined;
+  Subscription: undefined;
   ManifestationCreate: { manifestation?: ManifestationEntry };
   ManifestationView: { manifestation: ManifestationEntry };
   ManifestationReading: { moodEntryId?: string; fromAlarm?: boolean };
