@@ -43,5 +43,3 @@ yarn-error.*
 dist/
 web-build/.env
 
-# Google Cloud credentials
-GoogleAndroid-Key/
