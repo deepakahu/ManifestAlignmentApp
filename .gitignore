@@ -42,3 +42,6 @@ yarn-error.*
 .expo
 dist/
 web-build/.env
+
+# Google Cloud credentials
+GoogleAndroid-Key/
