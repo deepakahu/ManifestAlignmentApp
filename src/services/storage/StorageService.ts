@@ -140,6 +140,15 @@ export class StorageService {
     }
   }
 
+  static async saveManifestationEntries(entries: ManifestationEntry[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.MANIFESTATION_ENTRIES, JSON.stringify(entries));
+    } catch (error) {
+      console.error('Error saving manifestation entries:', error);
+      throw error;
+    }
+  }
+
   // Alarms
   static async getAlarms(): Promise<Alarm[]> {
     try {
@@ -198,6 +207,15 @@ export class StorageService {
       await AsyncStorage.setItem(STORAGE_KEYS.ALARMS, JSON.stringify(filteredAlarms));
     } catch (error) {
       console.error('Error deleting alarm:', error);
+      throw error;
+    }
+  }
+
+  static async saveAlarms(alarms: Alarm[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.ALARMS, JSON.stringify(alarms));
+    } catch (error) {
+      console.error('Error saving alarms:', error);
       throw error;
     }
   }

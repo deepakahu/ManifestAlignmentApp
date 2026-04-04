@@ -70,6 +70,11 @@ export interface AppState {
 }
 
 export type RootStackParamList = {
+  // Auth screens
+  Login: undefined;
+  Signup: undefined;
+  ForgotPassword: undefined;
+  // Main app screens
   MainTabs: undefined;
   AlarmSetup: { alarm?: Alarm };
   AlarmList: undefined;

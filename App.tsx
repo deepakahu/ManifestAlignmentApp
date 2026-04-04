@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { AppProvider } from './src/context/AppContext';
+import { AuthProvider } from './src/context/AuthContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AlarmPermissionGuard } from './src/components/AlarmPermissionGuard';
 import { SubscriptionService } from './src/services/SubscriptionService';
@@ -21,11 +22,13 @@ export default function App() {
   }, []);
 
   return (
-    <AlarmPermissionGuard>
-      <AppProvider>
-        <AppNavigator />
-        <StatusBar style="auto" />
-      </AppProvider>
-    </AlarmPermissionGuard>
+    <AuthProvider>
+      <AlarmPermissionGuard>
+        <AppProvider>
+          <AppNavigator />
+          <StatusBar style="auto" />
+        </AppProvider>
+      </AlarmPermissionGuard>
+    </AuthProvider>
   );
 }
