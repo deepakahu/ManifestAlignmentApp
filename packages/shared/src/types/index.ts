@@ -299,3 +299,9 @@ export interface PaginatedResponse<T> {
   pageSize: number;
   hasMore: boolean;
 }
+
+// ============================================
+// DISCIPLINE SYSTEM TYPES (PHASE 2)
+// ============================================
+
+export * from './discipline';

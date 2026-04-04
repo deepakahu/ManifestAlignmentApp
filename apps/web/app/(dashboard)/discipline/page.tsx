@@ -1,0 +1,118 @@
+/**
+ * Discipline Overview Page
+ *
+ * Main discipline tracking dashboard showing all categories with stats
+ */
+
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
+import type { Category } from '@manifestation/shared';
+import { categoryFromDB } from '@manifestation/shared';
+import { CategoryGrid } from '@/components/discipline/category/CategoryGrid';
+
+export default function DisciplinePage() {
+  const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showArchived, setShowArchived] = useState(false);
+
+  // Load categories
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('is_archived', { ascending: true })
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      setCategories(data.map(categoryFromDB));
+    } catch (error: any) {
+      console.error('Failed to load categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCategoryClick = (category: Category) => {
+    router.push(`/discipline/categories/${category.id}`);
+  };
+
+  const handleManageCategories = () => {
+    router.push('/discipline/categories');
+  };
+
+  const filteredCategories = showArchived
+    ? categories
+    : categories.filter(c => !c.isArchived);
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Discipline Tracker</h1>
+          <p className="mt-1 text-gray-600">
+            Track your daily habits and achieve your goals
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            {showArchived ? 'Hide Archived' : 'Show Archived'}
+          </button>
+          <button
+            onClick={handleManageCategories}
+            className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Manage Categories
+          </button>
+        </div>
+      </div>
+
+      {/* Categories Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+        </div>
+      ) : filteredCategories.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="text-gray-400 text-6xl mb-4">📋</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No Categories Yet
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Create your first category to start tracking your discipline activities
+          </p>
+          <button
+            onClick={handleManageCategories}
+            className="px-6 py-3 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Create First Category
+          </button>
+        </div>
+      ) : (
+        <CategoryGrid
+          categories={filteredCategories}
+          onCategoryClick={handleCategoryClick}
+        />
+      )}
+    </div>
+  );
+}

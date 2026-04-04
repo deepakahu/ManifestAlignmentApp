@@ -370,3 +370,10 @@ export function getAlarmIntervalMinutes(alarm: Alarm): number {
   }
   return alarm.interval.hours * 60 + alarm.interval.minutes;
 }
+
+// ============================================
+// DISCIPLINE SYSTEM TRANSFORMERS (PHASE 2)
+// ============================================
+
+export * from './disciplineTransformers';
+export * from './disciplineValidation';
