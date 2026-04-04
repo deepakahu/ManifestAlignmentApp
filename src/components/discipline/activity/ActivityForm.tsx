@@ -28,7 +28,7 @@ import type {
   MultiSelectTargetConfig,
   TextTargetConfig,
 } from '@manifestation/shared';
-import { ActivitySchema } from '@manifestation/shared';
+import { DisciplineActivitySchema } from '@manifestation/shared';
 import { TrackingTypeSelector } from './TrackingTypeSelector';
 import { FrequencyPicker } from './FrequencyPicker';
 
@@ -116,7 +116,8 @@ export function ActivityForm({
       setErrors({});
 
       // Validate
-      const validation = ActivitySchema.safeParse({
+      const validation = DisciplineActivitySchema.safeParse({
+        goalId: '00000000-0000-0000-0000-000000000000', // Placeholder UUID for validation
         title,
         description,
         trackingType,

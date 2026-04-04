@@ -66,7 +66,7 @@ export default function GoalDetailPage() {
 
       // Load activities for this goal
       const { data: activitiesData, error: activitiesError } = await supabase
-        .from('activities')
+        .from('discipline_activities')
         .select('*')
         .eq('goal_id', goalId)
         .eq('user_id', user.id)
@@ -97,7 +97,7 @@ export default function GoalDetailPage() {
 
     try {
       const { error } = await supabase
-        .from('activities')
+        .from('discipline_activities')
         .delete()
         .eq('id', activity.id);
 
@@ -111,7 +111,7 @@ export default function GoalDetailPage() {
   const handleToggleActive = async (activity: DisciplineActivity) => {
     try {
       const { error } = await supabase
-        .from('activities')
+        .from('discipline_activities')
         .update({ is_active: !activity.isActive })
         .eq('id', activity.id);
 
@@ -132,7 +132,7 @@ export default function GoalDetailPage() {
       if (editingActivity) {
         // Update existing activity
         const { error } = await supabase
-          .from('activities')
+          .from('discipline_activities')
           .update(activityToDB({
             ...editingActivity,
             ...data,
@@ -156,7 +156,7 @@ export default function GoalDetailPage() {
         };
 
         const { error } = await supabase
-          .from('activities')
+          .from('discipline_activities')
           .insert({
             ...activityToDB(newActivity as DisciplineActivity),
             user_id: user.id,
