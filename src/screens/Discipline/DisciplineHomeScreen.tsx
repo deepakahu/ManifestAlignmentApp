@@ -23,8 +23,14 @@ import { categoryRepository } from '../../repositories/CategoryRepository';
 import { CategoryList } from '../../components/discipline/category/CategoryList';
 import { CategoryForm, CategoryFormData } from '../../components/discipline/category/CategoryForm';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { RootStackParamList, MainTabParamList } from '../../types';
 
-type Props = NativeStackScreenProps<any, 'DisciplineHome'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Discipline'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 export function DisciplineHomeScreen({ navigation }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -119,7 +125,11 @@ export function DisciplineHomeScreen({ navigation }: Props) {
   // Create new category
   const handleCreate = async (data: CategoryFormData) => {
     try {
-      await categoryRepository.create(data);
+      await categoryRepository.create({
+        ...data,
+        orderIndex: 0,
+        isArchived: false,
+      });
       setShowForm(false);
       loadCategories();
     } catch (error: any) {

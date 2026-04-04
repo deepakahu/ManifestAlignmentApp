@@ -9,8 +9,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import type { Goal, Category } from '@manifestation/shared';
-import { goalFromDB, categoryFromDB } from '@manifestation/shared';
+import type { Goal, Category, DisciplineActivity } from '@manifestation/shared';
+import { goalFromDB, categoryFromDB, activityFromDB, activityToDB } from '@manifestation/shared';
+import { ActivityList } from '@/components/discipline/ActivityList';
+import { ActivityForm, ActivityFormData } from '@/components/discipline/ActivityForm';
 
 export default function GoalDetailPage() {
   const router = useRouter();
@@ -19,7 +21,10 @@ export default function GoalDetailPage() {
 
   const [goal, setGoal] = useState<Goal | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
+  const [activities, setActivities] = useState<DisciplineActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showActivityForm, setShowActivityForm] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<DisciplineActivity | null>(null);
 
   useEffect(() => {
     loadData();
@@ -58,10 +63,114 @@ export default function GoalDetailPage() {
           setCategory(categoryFromDB(categoryData));
         }
       }
+
+      // Load activities for this goal
+      const { data: activitiesData, error: activitiesError } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('goal_id', goalId)
+        .eq('user_id', user.id)
+        .order('order_index', { ascending: true });
+
+      if (!activitiesError && activitiesData) {
+        setActivities(activitiesData.map(activityFromDB));
+      }
     } catch (error: any) {
       console.error('Failed to load goal:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddActivity = () => {
+    setEditingActivity(null);
+    setShowActivityForm(true);
+  };
+
+  const handleEditActivity = (activity: DisciplineActivity) => {
+    setEditingActivity(activity);
+    setShowActivityForm(true);
+  };
+
+  const handleDeleteActivity = async (activity: DisciplineActivity) => {
+    if (!confirm(`Are you sure you want to delete "${activity.title}"?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from('activities')
+        .delete()
+        .eq('id', activity.id);
+
+      if (error) throw error;
+      loadData();
+    } catch (error: any) {
+      alert('Failed to delete activity: ' + error.message);
+    }
+  };
+
+  const handleToggleActive = async (activity: DisciplineActivity) => {
+    try {
+      const { error } = await supabase
+        .from('activities')
+        .update({ is_active: !activity.isActive })
+        .eq('id', activity.id);
+
+      if (error) throw error;
+      loadData();
+    } catch (error: any) {
+      alert('Failed to update activity: ' + error.message);
+    }
+  };
+
+  const handleActivitySubmit = async (data: ActivityFormData) => {
+    if (!goal) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      if (editingActivity) {
+        // Update existing activity
+        const { error } = await supabase
+          .from('activities')
+          .update(activityToDB({
+            ...editingActivity,
+            ...data,
+          }))
+          .eq('id', editingActivity.id);
+
+        if (error) throw error;
+      } else {
+        // Create new activity
+        const newActivity: Partial<DisciplineActivity> = {
+          goalId: goal.id,
+          ...data,
+          reminderChannels: {
+            push: true,
+            alarm: false,
+            sms: false,
+            email: false,
+          },
+          isActive: true,
+          orderIndex: activities.length,
+        };
+
+        const { error } = await supabase
+          .from('activities')
+          .insert({
+            ...activityToDB(newActivity as DisciplineActivity),
+            user_id: user.id,
+          });
+
+        if (error) throw error;
+      }
+
+      setShowActivityForm(false);
+      setEditingActivity(null);
+      loadData();
+    } catch (error: any) {
+      alert('Failed to save activity: ' + error.message);
+      throw error;
     }
   };
 
@@ -188,26 +297,68 @@ export default function GoalDetailPage() {
         </div>
       )}
 
-      {/* Activities Placeholder */}
+      {/* Activities */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <span className="text-xl">✅</span>
-          <h3 className="text-lg font-semibold text-gray-900">Activities</h3>
-        </div>
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-6xl mb-4">➕</div>
-          <p className="text-gray-600 mb-6">
-            Activities will appear here once you create them
-          </p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">✅</span>
+            <h3 className="text-lg font-semibold text-gray-900">Activities</h3>
+            <span className="text-gray-600">({activities.length})</span>
+          </div>
           <button
-            onClick={() => alert('Activity creation will be available in Deliverable 4')}
-            className="px-6 py-3 text-white rounded-lg hover:opacity-90 transition-opacity"
+            onClick={handleAddActivity}
+            className="px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
             style={{ backgroundColor: color }}
           >
+            <span>+</span>
             Add Activity
           </button>
         </div>
+
+        <ActivityList
+          activities={activities}
+          goalColor={color}
+          onEdit={handleEditActivity}
+          onDelete={handleDeleteActivity}
+          onToggleActive={handleToggleActive}
+        />
       </div>
+
+      {/* Activity Form Modal */}
+      {showActivityForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {editingActivity ? 'Edit Activity' : 'Create New Activity'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowActivityForm(false);
+                    setEditingActivity(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <ActivityForm
+              activity={editingActivity || undefined}
+              goalColor={color}
+              onSubmit={handleActivitySubmit}
+              onCancel={() => {
+                setShowActivityForm(false);
+                setEditingActivity(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

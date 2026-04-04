@@ -1,25 +1,131 @@
-import { createClient } from '@/lib/supabase/server';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
 
-export default async function ManifestationsPage() {
-  const supabase = await createClient();
+interface Manifestation {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  target_date: string | null;
+  is_completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+}
 
-  // Fetch all manifestations
-  const { data: manifestations } = await supabase
-    .from('manifestation_entries')
-    .select('*')
-    .order('created_at', { ascending: false });
+export default function ManifestationsPage() {
+  const [manifestations, setManifestations] = useState<Manifestation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'Personal',
+    targetDate: '',
+    visualizationNotes: '',
+    affirmations: '',
+  });
 
-  const activeManifestations = manifestations?.filter(m => !m.is_completed) ?? [];
-  const completedManifestations = manifestations?.filter(m => m.is_completed) ?? [];
+  useEffect(() => {
+    loadManifestations();
+  }, []);
+
+  const loadManifestations = async () => {
+    try {
+      const { data } = await supabase
+        .from('manifestation_entries')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      setManifestations(data || []);
+    } catch (error) {
+      console.error('Failed to load manifestations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.title.trim()) {
+      alert('Please enter a title');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('manifestation_entries')
+        .insert({
+          user_id: user.id,
+          title: formData.title,
+          description: formData.description || null,
+          category: formData.category || 'Personal',
+          target_date: formData.targetDate || null,
+          visualization_notes: formData.visualizationNotes || null,
+          affirmations: formData.affirmations
+            ? formData.affirmations.split('\n').filter(Boolean)
+            : [],
+          is_completed: false,
+        });
+
+      if (error) throw error;
+
+      setFormData({
+        title: '',
+        description: '',
+        category: 'Personal',
+        targetDate: '',
+        visualizationNotes: '',
+        affirmations: '',
+      });
+      setShowForm(false);
+      loadManifestations();
+    } catch (error: any) {
+      alert('Failed to create manifestation: ' + error.message);
+    }
+  };
+
+  const activeManifestations = manifestations.filter(m => !m.is_completed);
+  const completedManifestations = manifestations.filter(m => m.is_completed);
+
+  if (loading) {
+    return (
+      <div>
+        <Header title="Manifestations" />
+        <div className="p-8 flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+        </div>
+      </div>
+    );
+  }
+
+  const CATEGORIES = ['Personal', 'Health', 'Career', 'Relationships', 'Financial', 'Spiritual', 'Other'];
 
   return (
     <div>
       <Header title="Manifestations" />
 
       <div className="p-8">
+        {/* Header with Add Button */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Manifestations</h1>
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-2"
+          >
+            <span>+</span>
+            Create Manifestation
+          </button>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl border border-slate-200 p-6">
@@ -144,11 +250,150 @@ export default async function ManifestationsPage() {
             </div>
             <h3 className="text-lg font-medium text-slate-900 mb-2">No manifestations yet</h3>
             <p className="text-slate-500 mb-6">
-              Create your first manifestation using the mobile app
+              Create your first manifestation to start manifesting your dreams
             </p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+            >
+              Create First Manifestation
+            </button>
           </div>
         )}
       </div>
+
+      {/* Manifestation Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Create New Manifestation</h2>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreate} className="p-6 space-y-6">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="e.g., Own my dream home, Start my business"
+                  maxLength={200}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">{formData.title.length}/200</p>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe your manifestation in detail..."
+                  rows={4}
+                  maxLength={1000}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">{formData.description.length}/1000</p>
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Category
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                >
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Target Date */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Target Date (Optional)
+                </label>
+                <input
+                  type="date"
+                  value={formData.targetDate}
+                  onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Visualization Notes */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Visualization Notes (Optional)
+                </label>
+                <textarea
+                  value={formData.visualizationNotes}
+                  onChange={(e) => setFormData({ ...formData, visualizationNotes: e.target.value })}
+                  placeholder="How do you visualize this manifestation? What does it feel like?"
+                  rows={3}
+                  maxLength={500}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">{formData.visualizationNotes.length}/500</p>
+              </div>
+
+              {/* Affirmations */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Affirmations (Optional)
+                </label>
+                <p className="text-xs text-gray-600 mb-2">Enter one affirmation per line</p>
+                <textarea
+                  value={formData.affirmations}
+                  onChange={(e) => setFormData({ ...formData, affirmations: e.target.value })}
+                  placeholder="I am worthy of my dreams&#10;I attract abundance effortlessly&#10;I am living my best life"
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                >
+                  Create Manifestation
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

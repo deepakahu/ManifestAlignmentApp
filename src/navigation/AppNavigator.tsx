@@ -41,6 +41,9 @@ import AlarmListScreen from '../screens/AlarmSetup/AlarmListScreen';
 import MoodRecordingScreen from '../screens/MoodRecording/MoodRecordingScreen';
 import {AlarmRingingScreen} from '../screens/AlarmRinging/AlarmRingingScreen';
 import {PhysiologyShiftScreen} from '../screens/FTBA/PhysiologyShiftScreen';
+import {DisciplineHomeScreen} from '../screens/Discipline/DisciplineHomeScreen';
+import {CategoryDetailScreen} from '../screens/Discipline/CategoryDetailScreen';
+import {GoalDetailScreen} from '../screens/Discipline/GoalDetailScreen';
 
 import {RootStackParamList, MainTabParamList} from '../types';
 
@@ -60,6 +63,8 @@ const TabNavigator = () => {
             iconName = focused ? 'happy' : 'happy-outline';
           } else if (route.name === 'Manifestation') {
             iconName = focused ? 'sparkles' : 'sparkles-outline';
+          } else if (route.name === 'Discipline') {
+            iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           } else {
@@ -78,10 +83,15 @@ const TabNavigator = () => {
         component={MoodTrackingScreen} 
         options={{tabBarLabel: 'Mood'}}
       />
-      <Tab.Screen 
-        name="Manifestation" 
+      <Tab.Screen
+        name="Manifestation"
         component={ManifestationScreen}
         options={{tabBarLabel: 'Manifest'}}
+      />
+      <Tab.Screen
+        name="Discipline"
+        component={DisciplineHomeScreen}
+        options={{tabBarLabel: 'Discipline'}}
       />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
@@ -133,6 +143,9 @@ const AppNavigator = () => {
         ManifestationCreate: 'manifestation-create',
         ManifestationView: 'manifestation-view',
         ManifestationReading: 'manifestation-reading',
+        DisciplineHome: 'discipline',
+        CategoryDetail: 'discipline/category/:categoryId',
+        GoalDetail: 'discipline/goal/:goalId',
       },
     },
   };
@@ -196,6 +209,9 @@ const AppNavigator = () => {
             <Stack.Screen name="ManifestationCreate" component={ManifestationCreateScreen} />
             <Stack.Screen name="ManifestationView" component={ManifestationViewScreen} />
             <Stack.Screen name="ManifestationReading" component={ManifestationReadingScreen} />
+            <Stack.Screen name="DisciplineHome" component={DisciplineHomeScreen} />
+            <Stack.Screen name="CategoryDetail" component={CategoryDetailScreen} />
+            <Stack.Screen name="GoalDetail" component={GoalDetailScreen} />
           </>
         )}
       </Stack.Navigator>

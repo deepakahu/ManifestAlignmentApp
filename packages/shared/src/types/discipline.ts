@@ -78,23 +78,23 @@ export interface Goal {
 export interface GoalDB {
   id: string;
   user_id: string;
-  category_id?: string;
+  category_id?: string | null;
   title: string;
-  description?: string;
-  specific?: string;
-  measurable?: string;
-  achievable?: string;
-  relevant?: string;
-  time_bound?: string;
-  target_date?: string;
+  description?: string | null;
+  specific?: string | null;
+  measurable?: string | null;
+  achievable?: string | null;
+  relevant?: string | null;
+  time_bound?: string | null;
+  target_date?: string | null;
   status: GoalStatus;
   progress_percentage: number;
-  manual_progress_override?: number;
+  manual_progress_override?: number | null;
   use_manual_progress: boolean;
   order_index: number;
   created_at: string;
   updated_at: string;
-  completed_at?: string;
+  completed_at?: string | null;
 }
 
 // =====================================================
@@ -192,18 +192,18 @@ export interface DisciplineActivityDB {
   user_id: string;
   goal_id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   tracking_type: TrackingType;
   target_config: TargetConfig;
   frequency_type: FrequencyType;
   frequency_config: FrequencyConfig;
   reminder_enabled: boolean;
-  reminder_time?: string;
+  reminder_time?: string | null;
   reminder_channels: ReminderChannels;
   current_streak: number;
   longest_streak: number;
   streak_freeze_available: boolean;
-  last_freeze_used_at?: string;
+  last_freeze_used_at?: string | null;
   is_active: boolean;
   order_index: number;
   created_at: string;
@@ -368,9 +368,9 @@ export interface DisciplineCompetitionDB {
   id: string;
   created_by: string;
   name: string;
-  description?: string;
+  description?: string | null;
   competition_type: CompetitionType;
-  category_id?: string;
+  category_id?: string | null;
   start_date: string;
   end_date: string;
   is_active: boolean;

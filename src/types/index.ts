@@ -86,11 +86,16 @@ export type RootStackParamList = {
   ManifestationCreate: { manifestation?: ManifestationEntry };
   ManifestationView: { manifestation: ManifestationEntry };
   ManifestationReading: { moodEntryId?: string; fromAlarm?: boolean };
+  // Discipline screens
+  DisciplineHome: undefined;
+  CategoryDetail: { categoryId: string };
+  GoalDetail: { goalId: string };
 };
 
 export type MainTabParamList = {
   Home: undefined;
   MoodTracking: undefined;
   Manifestation: undefined;
+  Discipline: undefined;
   Profile: undefined;
 };

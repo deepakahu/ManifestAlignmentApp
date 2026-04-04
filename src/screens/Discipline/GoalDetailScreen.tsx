@@ -14,13 +14,17 @@ import {
   Alert,
   ActionSheetIOS,
   Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import type { Goal, Category } from '@manifestation/shared';
+import type { Goal, Category, DisciplineActivity, ActivityLog } from '@manifestation/shared';
 import { formatDate } from '@manifestation/shared';
 import { goalRepository } from '../../repositories/GoalRepository';
 import { categoryRepository } from '../../repositories/CategoryRepository';
+import { activityRepository } from '../../repositories/ActivityRepository';
+import { ActivityList } from '../../components/discipline/activity/ActivityList';
+import { ActivityForm, ActivityFormData } from '../../components/discipline/activity/ActivityForm';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<any, 'GoalDetail'>;
@@ -30,8 +34,12 @@ export function GoalDetailScreen({ navigation, route }: Props) {
   const [goal, setGoal] = useState<Goal | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activities, setActivities] = useState<DisciplineActivity[]>([]);
+  const [todayLogs, setTodayLogs] = useState<ActivityLog[]>([]);
+  const [showActivityForm, setShowActivityForm] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<DisciplineActivity | null>(null);
 
-  // Load goal and category
+  // Load goal, category, and activities
   const loadData = useCallback(async () => {
     try {
       const goalData = await goalRepository.getById(goalId);
@@ -47,6 +55,16 @@ export function GoalDetailScreen({ navigation, route }: Props) {
         const categoryData = await categoryRepository.getById(goalData.categoryId);
         setCategory(categoryData);
       }
+
+      // Load activities for this goal
+      const activitiesData = await activityRepository.getByGoal(goalId);
+      setActivities(activitiesData);
+
+      // Load today's logs for quick status display
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const logsData = await activityRepository.getLogsByDate(today);
+      setTodayLogs(logsData);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to load goal');
     } finally {
@@ -149,6 +167,82 @@ export function GoalDetailScreen({ navigation, route }: Props) {
         },
       ]
     );
+  };
+
+  // Activity handlers
+  const handleAddActivity = () => {
+    setEditingActivity(null);
+    setShowActivityForm(true);
+  };
+
+  const handleEditActivity = (activity: DisciplineActivity) => {
+    setEditingActivity(activity);
+    setShowActivityForm(true);
+  };
+
+  const handleDeleteActivity = async (activity: DisciplineActivity) => {
+    Alert.alert(
+      'Delete Activity',
+      `Are you sure you want to delete "${activity.title}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await activityRepository.delete(activity.id);
+              loadData();
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to delete activity');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleToggleActive = async (activity: DisciplineActivity) => {
+    try {
+      await activityRepository.update(activity.id, {
+        isActive: !activity.isActive,
+      });
+      loadData();
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to update activity');
+    }
+  };
+
+  const handleActivitySubmit = async (data: ActivityFormData) => {
+    if (!goal) return;
+
+    try {
+      if (editingActivity) {
+        await activityRepository.update(editingActivity.id, {
+          ...data,
+          isActive: editingActivity.isActive,
+          orderIndex: editingActivity.orderIndex,
+        });
+      } else {
+        await activityRepository.create({
+          goalId: goal.id,
+          ...data,
+          reminderChannels: {
+            push: true,
+            alarm: false,
+            sms: false,
+            email: false,
+          },
+          isActive: true,
+          orderIndex: 0,
+        });
+      }
+      setShowActivityForm(false);
+      setEditingActivity(null);
+      loadData();
+    } catch (error: any) {
+      throw error; // Let form handle the error
+    }
   };
 
   if (loading || !goal) {
@@ -316,27 +410,86 @@ export function GoalDetailScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* Activities Placeholder */}
+        {/* Activities */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="check-circle" size={20} color={color} />
             <Text style={styles.sectionTitle}>Activities</Text>
+            <Text style={styles.sectionCount}>({activities.length})</Text>
           </View>
-          <View style={styles.placeholder}>
-            <MaterialIcons name="add-circle-outline" size={48} color="#ccc" />
-            <Text style={styles.placeholderText}>
-              Activities will appear here once you create them
-            </Text>
-            <TouchableOpacity
-              style={[styles.placeholderButton, { backgroundColor: color }]}
-              onPress={() => Alert.alert('Coming Soon', 'Activity creation will be available in Deliverable 4')}
-            >
-              <MaterialIcons name="add" size={20} color="#fff" />
-              <Text style={styles.placeholderButtonText}>Add Activity</Text>
-            </TouchableOpacity>
-          </View>
+
+          {activities.length === 0 ? (
+            <View style={styles.placeholder}>
+              <MaterialIcons name="add-circle-outline" size={48} color="#ccc" />
+              <Text style={styles.placeholderText}>
+                No activities yet. Add your first activity to start tracking!
+              </Text>
+              <TouchableOpacity
+                style={[styles.placeholderButton, { backgroundColor: color }]}
+                onPress={handleAddActivity}
+              >
+                <MaterialIcons name="add" size={20} color="#fff" />
+                <Text style={styles.placeholderButtonText}>Add Activity</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <ActivityList
+                activities={activities}
+                todayLogs={todayLogs}
+                goalColor={color}
+                showInactive={false}
+                onEdit={handleEditActivity}
+                onDelete={handleDeleteActivity}
+                onToggleActive={handleToggleActive}
+              />
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: color }]}
+                onPress={handleAddActivity}
+              >
+                <MaterialIcons name="add" size={20} color="#fff" />
+                <Text style={styles.addButtonText}>Add Activity</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
+
+      {/* Activity Form Modal */}
+      <Modal
+        visible={showActivityForm}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => {
+          setShowActivityForm(false);
+          setEditingActivity(null);
+        }}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              {editingActivity ? 'Edit Activity' : 'New Activity'}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setShowActivityForm(false);
+                setEditingActivity(null);
+              }}
+            >
+              <MaterialIcons name="close" size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
+          <ActivityForm
+            activity={editingActivity || undefined}
+            goalColor={color}
+            onSubmit={handleActivitySubmit}
+            onCancel={() => {
+              setShowActivityForm(false);
+              setEditingActivity(null);
+            }}
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -512,5 +665,38 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#fff',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  addButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1e293b',
   },
 });
