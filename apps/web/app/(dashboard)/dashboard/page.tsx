@@ -48,6 +48,63 @@ export default async function DashboardPage() {
     ? (weekMoods.reduce((sum, entry) => sum + entry.mood_level, 0) / weekMoods.length).toFixed(1)
     : 'N/A';
 
+  // Fetch discipline stats
+  const { count: categoriesCount } = await supabase
+    .from('categories')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('is_archived', false);
+
+  const { count: goalsCount } = await supabase
+    .from('goals')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+
+  const { count: activitiesCount } = await supabase
+    .from('discipline_activities')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('is_active', true);
+
+  // Get today's activity completion
+  const today = new Date().toISOString().split('T')[0];
+
+  // Get all activities
+  const { data: allActivities } = await supabase
+    .from('discipline_activities')
+    .select('id, frequency_type, frequency_config')
+    .eq('user_id', user.id)
+    .eq('is_active', true);
+
+  // Filter activities due today
+  const activitiesToday = allActivities?.filter(activity => {
+    if (activity.frequency_type === 'daily') return true;
+
+    if (activity.frequency_type === 'specific_days') {
+      const dayOfWeek = new Date().getDay();
+      const config = activity.frequency_config as { days: number[] };
+      return config?.days?.includes(dayOfWeek) || false;
+    }
+
+    if (activity.frequency_type === 'custom') {
+      const config = activity.frequency_config as { dates: string[] };
+      return config?.dates?.includes(today) || false;
+    }
+
+    return false;
+  }) || [];
+
+  // Get today's logs
+  const { data: todayLogs } = await supabase
+    .from('activity_logs')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('log_date', today);
+
+  const todayCompletion = activitiesToday.length > 0
+    ? Math.round((todayLogs?.length || 0) / activitiesToday.length * 100)
+    : 0;
+
   return (
     <div>
       <Header title="Dashboard" />
@@ -64,19 +121,36 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <Link href="/discipline" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 transition-colors">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <span className="text-3xl font-bold text-slate-900">{avgMood}</span>
+              <span className="text-3xl font-bold text-slate-900">
+                {activitiesCount ?? 0}
+              </span>
             </div>
-            <p className="text-sm font-medium text-slate-900 mb-1">Average Mood</p>
-            <p className="text-xs text-slate-500">Last 7 days</p>
-          </div>
+            <p className="text-sm font-medium text-slate-900 mb-1">Discipline</p>
+            <p className="text-xs text-slate-500">{categoriesCount ?? 0} categories, {goalsCount ?? 0} goals</p>
+          </Link>
+
+          <Link href="/discipline/tracker" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 transition-colors">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-3xl font-bold text-slate-900">
+                {todayCompletion}%
+              </span>
+            </div>
+            <p className="text-sm font-medium text-slate-900 mb-1">Today</p>
+            <p className="text-xs text-slate-500">{todayLogs?.length ?? 0}/{activitiesToday.length} logged</p>
+          </Link>
 
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -91,6 +165,19 @@ export default async function DashboardPage() {
             </div>
             <p className="text-sm font-medium text-slate-900 mb-1">Manifestations</p>
             <p className="text-xs text-slate-500">Active intentions</p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-3xl font-bold text-slate-900">{avgMood}</span>
+            </div>
+            <p className="text-sm font-medium text-slate-900 mb-1">Average Mood</p>
+            <p className="text-xs text-slate-500">Last 7 days</p>
           </div>
 
           <div className="bg-white rounded-xl border border-slate-200 p-6">

@@ -18,6 +18,8 @@ export default function DisciplinePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
+  const [goalCounts, setGoalCounts] = useState<Record<string, number>>({});
+  const [activityCounts, setActivityCounts] = useState<Record<string, number>>({});
 
   // Load categories
   useEffect(() => {
@@ -32,6 +34,7 @@ export default function DisciplinePage() {
         return;
       }
 
+      // Load categories
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -40,7 +43,48 @@ export default function DisciplinePage() {
         .order('order_index', { ascending: true });
 
       if (error) throw error;
-      setCategories(data.map(categoryFromDB));
+      const cats = data.map(categoryFromDB);
+      setCategories(cats);
+
+      // Load goals count per category
+      const { data: goalsData } = await supabase
+        .from('goals')
+        .select('id, category_id')
+        .eq('user_id', user.id);
+
+      const goalCountsMap: Record<string, number> = {};
+      (goalsData || []).forEach((goal) => {
+        const catId = goal.category_id;
+        if (catId) {
+          goalCountsMap[catId] = (goalCountsMap[catId] || 0) + 1;
+        }
+      });
+      setGoalCounts(goalCountsMap);
+
+      // Load activities count per category (via goals)
+      const { data: activitiesData } = await supabase
+        .from('discipline_activities')
+        .select('goal_id')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      // Map goal_id to category_id
+      const goalToCategoryMap = new Map<string, string>();
+      (goalsData || []).forEach((goal) => {
+        if (goal.category_id) {
+          goalToCategoryMap.set(goal.id, goal.category_id);
+        }
+      });
+
+      const activityCountsMap: Record<string, number> = {};
+      (activitiesData || []).forEach((activity) => {
+        const catId = goalToCategoryMap.get(activity.goal_id);
+        if (catId) {
+          activityCountsMap[catId] = (activityCountsMap[catId] || 0) + 1;
+        }
+      });
+      setActivityCounts(activityCountsMap);
+
     } catch (error: any) {
       console.error('Failed to load categories:', error);
     } finally {
@@ -71,6 +115,15 @@ export default function DisciplinePage() {
           </p>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={() => router.push('/discipline/tracker')}
+            className="px-4 py-2 text-indigo-700 bg-indigo-50 border border-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors font-medium flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Today
+          </button>
           <button
             onClick={() => setShowArchived(!showArchived)}
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -111,6 +164,8 @@ export default function DisciplinePage() {
         <CategoryGrid
           categories={filteredCategories}
           onCategoryClick={handleCategoryClick}
+          goalCounts={goalCounts}
+          activityCounts={activityCounts}
         />
       )}
     </div>

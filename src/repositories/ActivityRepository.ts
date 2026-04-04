@@ -9,6 +9,7 @@
 import { supabase } from '../services/supabase/SupabaseClient';
 import type { DisciplineActivity, DisciplineActivityDB, ActivityLog, ActivityLogDB } from '@manifestation/shared';
 import { activityToDB, activityFromDB, activityLogToDB, activityLogFromDB } from '@manifestation/shared';
+import { isDueOn } from '../utils/dailyTrackerUtils';
 
 export class ActivityRepository {
   private tableName = 'discipline_activities';
@@ -400,6 +401,18 @@ export class ActivityRepository {
       default:
         return false;
     }
+  }
+
+  /**
+   * Get all activities due on a specific date
+   * Filters active activities based on frequency configuration
+   *
+   * @param date - The date to check (defaults to today)
+   * @returns Activities that should be tracked on the given date
+   */
+  async getActivitiesDueOn(date: Date = new Date()): Promise<DisciplineActivity[]> {
+    const allActivities = await this.getAll();
+    return allActivities.filter(activity => isDueOn(activity, date));
   }
 }
 

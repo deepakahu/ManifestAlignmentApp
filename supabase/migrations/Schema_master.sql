@@ -49,8 +49,65 @@ CREATE TABLE public.categories (
   is_system boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  description text,
+  order_index integer DEFAULT 0,
+  is_archived boolean DEFAULT false,
   CONSTRAINT categories_pkey PRIMARY KEY (id),
   CONSTRAINT categories_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.challenge_activities (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  challenge_id uuid NOT NULL,
+  activity_id uuid NOT NULL,
+  is_required boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT challenge_activities_pkey PRIMARY KEY (id),
+  CONSTRAINT challenge_activities_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.discipline_activities(id),
+  CONSTRAINT challenge_activities_challenge_id_fkey FOREIGN KEY (challenge_id) REFERENCES public.challenges(id)
+);
+CREATE TABLE public.challenge_activity_logs (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  challenge_id uuid NOT NULL,
+  activity_log_id uuid NOT NULL,
+  approval_status USER-DEFINED DEFAULT 'pending'::challenge_log_approval_status,
+  approved_by uuid,
+  approved_at timestamp with time zone,
+  rejection_reason text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT challenge_activity_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT challenge_activity_logs_challenge_id_fkey FOREIGN KEY (challenge_id) REFERENCES public.challenges(id),
+  CONSTRAINT challenge_activity_logs_activity_log_id_fkey FOREIGN KEY (activity_log_id) REFERENCES public.activity_logs(id),
+  CONSTRAINT challenge_activity_logs_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.challenge_participants (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  challenge_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  role text NOT NULL CHECK (role = ANY (ARRAY['creator'::text, 'participant'::text, 'accountability_partner'::text])),
+  status USER-DEFINED DEFAULT 'invited'::challenge_participant_status,
+  joined_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT challenge_participants_pkey PRIMARY KEY (id),
+  CONSTRAINT challenge_participants_challenge_id_fkey FOREIGN KEY (challenge_id) REFERENCES public.challenges(id),
+  CONSTRAINT challenge_participants_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.challenges (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  title text NOT NULL,
+  description text,
+  start_date date NOT NULL,
+  end_date date NOT NULL,
+  status USER-DEFINED DEFAULT 'draft'::challenge_status,
+  prize_amount numeric DEFAULT 0.00,
+  prize_currency text DEFAULT 'USD'::text,
+  is_public boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT challenges_pkey PRIMARY KEY (id),
+  CONSTRAINT challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.competition_participants (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),

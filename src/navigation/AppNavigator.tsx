@@ -44,6 +44,7 @@ import {PhysiologyShiftScreen} from '../screens/FTBA/PhysiologyShiftScreen';
 import {DisciplineHomeScreen} from '../screens/Discipline/DisciplineHomeScreen';
 import {CategoryDetailScreen} from '../screens/Discipline/CategoryDetailScreen';
 import {GoalDetailScreen} from '../screens/Discipline/GoalDetailScreen';
+import {DailyTrackerScreen} from '../screens/Discipline/DailyTrackerScreen';
 
 import {RootStackParamList, MainTabParamList} from '../types';
 
@@ -65,6 +66,8 @@ const TabNavigator = () => {
             iconName = focused ? 'sparkles' : 'sparkles-outline';
           } else if (route.name === 'Discipline') {
             iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
+          } else if (route.name === 'DailyTracker') {
+            iconName = focused ? 'today' : 'today-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           } else {
@@ -92,6 +95,11 @@ const TabNavigator = () => {
         name="Discipline"
         component={DisciplineHomeScreen}
         options={{tabBarLabel: 'Discipline'}}
+      />
+      <Tab.Screen
+        name="DailyTracker"
+        component={DailyTrackerScreen}
+        options={{tabBarLabel: 'Today'}}
       />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>

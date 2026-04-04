@@ -31,6 +31,14 @@ export default function CategoryDetailPage() {
     timeBound: '',
     targetDate: '',
   });
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [showCategoryEditForm, setShowCategoryEditForm] = useState(false);
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    description: '',
+    icon: '',
+    color: '',
+  });
 
   useEffect(() => {
     loadData();
@@ -77,6 +85,63 @@ export default function CategoryDetailPage() {
     router.push(`/discipline/goals/${goalId}`);
   };
 
+  const handleEditCategory = () => {
+    if (!category) return;
+    setCategoryFormData({
+      name: category.name,
+      description: category.description || '',
+      icon: category.icon || '📋',
+      color: category.color,
+    });
+    setShowCategoryEditForm(true);
+  };
+
+  const handleSaveCategory = async () => {
+    if (!categoryFormData.name.trim()) {
+      alert('Please enter a category name');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('categories')
+        .update({
+          name: categoryFormData.name.trim(),
+          description: categoryFormData.description?.trim() || null,
+          icon: categoryFormData.icon,
+          color: categoryFormData.color,
+        })
+        .eq('id', categoryId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setShowCategoryEditForm(false);
+      loadData();
+    } catch (error: any) {
+      console.error('Failed to update category:', error);
+      alert('Failed to update category: ' + error.message);
+    }
+  };
+
+  const handleEditGoal = (goal: Goal) => {
+    setEditingGoal(goal);
+    setGoalFormData({
+      title: goal.title,
+      description: goal.description || '',
+      specific: goal.specific || '',
+      measurable: goal.measurable || '',
+      achievable: goal.achievable || '',
+      relevant: goal.relevant || '',
+      timeBound: goal.timeBound || '',
+      targetDate: goal.targetDate ? new Date(goal.targetDate).toISOString().split('T')[0] : '',
+    });
+    setShowGoalForm(true);
+  };
+
   const handleCreateGoal = async () => {
     if (!goalFormData.title.trim()) {
       alert('Please enter a goal title');
@@ -87,26 +152,47 @@ export default function CategoryDetailPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('goals')
-        .insert({
-          user_id: user.id,
-          category_id: categoryId,
-          title: goalFormData.title,
-          description: goalFormData.description || null,
-          specific: goalFormData.specific || null,
-          measurable: goalFormData.measurable || null,
-          achievable: goalFormData.achievable || null,
-          relevant: goalFormData.relevant || null,
-          time_bound: goalFormData.timeBound || null,
-          target_date: goalFormData.targetDate || null,
-          status: 'active',
-          progress_percentage: 0,
-          use_manual_progress: false,
-          order_index: 0,
-        });
+      if (editingGoal) {
+        // Update existing goal
+        const { error } = await supabase
+          .from('goals')
+          .update({
+            title: goalFormData.title,
+            description: goalFormData.description || null,
+            specific: goalFormData.specific || null,
+            measurable: goalFormData.measurable || null,
+            achievable: goalFormData.achievable || null,
+            relevant: goalFormData.relevant || null,
+            time_bound: goalFormData.timeBound || null,
+            target_date: goalFormData.targetDate || null,
+          })
+          .eq('id', editingGoal.id)
+          .eq('user_id', user.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Create new goal
+        const { error } = await supabase
+          .from('goals')
+          .insert({
+            user_id: user.id,
+            category_id: categoryId,
+            title: goalFormData.title,
+            description: goalFormData.description || null,
+            specific: goalFormData.specific || null,
+            measurable: goalFormData.measurable || null,
+            achievable: goalFormData.achievable || null,
+            relevant: goalFormData.relevant || null,
+            time_bound: goalFormData.timeBound || null,
+            target_date: goalFormData.targetDate || null,
+            status: 'active',
+            progress_percentage: 0,
+            use_manual_progress: false,
+            order_index: 0,
+          });
+
+        if (error) throw error;
+      }
 
       // Reset form and close modal
       setGoalFormData({
@@ -119,13 +205,14 @@ export default function CategoryDetailPage() {
         timeBound: '',
         targetDate: '',
       });
+      setEditingGoal(null);
       setShowGoalForm(false);
 
       // Reload data
       loadData();
     } catch (error: any) {
-      console.error('Failed to create goal:', error);
-      alert('Failed to create goal: ' + error.message);
+      console.error('Failed to save goal:', error);
+      alert('Failed to save goal: ' + error.message);
     }
   };
 
@@ -164,12 +251,23 @@ export default function CategoryDetailPage() {
               )}
             </div>
           </div>
-          <button
-            onClick={() => router.push('/discipline/categories')}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Back to Categories
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleEditCategory}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit Category
+            </button>
+            <button
+              onClick={() => router.push('/discipline/categories')}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Back to Categories
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -209,37 +307,52 @@ export default function CategoryDetailPage() {
             {activeGoals.map(goal => (
               <div
                 key={goal.id}
-                onClick={() => handleGoalClick(goal.id)}
-                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow relative group"
               >
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{goal.title}</h3>
-                {goal.description && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{goal.description}</p>
-                )}
-
-                {/* Progress */}
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600">Progress</span>
-                    <span className="font-semibold">{goal.progressPercentage}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${goal.progressPercentage}%`, backgroundColor: category.color }}
-                    />
-                  </div>
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditGoal(goal);
+                    }}
+                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    title="Edit goal"
+                  >
+                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
                 </div>
+                <div onClick={() => handleGoalClick(goal.id)} className="cursor-pointer">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 pr-12">{goal.title}</h3>
+                  {goal.description && (
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{goal.description}</p>
+                  )}
 
-                {/* SMART indicator */}
-                {[goal.specific, goal.measurable, goal.achievable, goal.relevant, goal.timeBound].filter(Boolean).length > 0 && (
-                  <div className="flex items-center gap-1 text-xs text-amber-600">
-                    <span>⭐</span>
-                    <span>
-                      SMART {[goal.specific, goal.measurable, goal.achievable, goal.relevant, goal.timeBound].filter(Boolean).length}/5
-                    </span>
+                  {/* Progress */}
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-600">Progress</span>
+                      <span className="font-semibold">{goal.progressPercentage}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${goal.progressPercentage}%`, backgroundColor: category.color }}
+                      />
+                    </div>
                   </div>
-                )}
+
+                  {/* SMART indicator */}
+                  {[goal.specific, goal.measurable, goal.achievable, goal.relevant, goal.timeBound].filter(Boolean).length > 0 && (
+                    <div className="flex items-center gap-1 text-xs text-amber-600">
+                      <span>⭐</span>
+                      <span>
+                        SMART {[goal.specific, goal.measurable, goal.achievable, goal.relevant, goal.timeBound].filter(Boolean).length}/5
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -292,13 +405,108 @@ export default function CategoryDetailPage() {
         </div>
       )}
 
-      {/* Goal Creation Modal */}
+      {/* Category Edit Modal */}
+      {showCategoryEditForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Edit Category</h2>
+                <button
+                  onClick={() => setShowCategoryEditForm(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category Name *
+                </label>
+                <input
+                  type="text"
+                  value={categoryFormData.name}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                  placeholder="e.g., Spiritual Growth"
+                  maxLength={50}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={categoryFormData.description}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                  placeholder="What does this category represent?"
+                  rows={3}
+                  maxLength={200}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Icon
+                </label>
+                <input
+                  type="text"
+                  value={categoryFormData.icon}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, icon: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                  placeholder="e.g., 🙏"
+                  maxLength={2}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Color
+                </label>
+                <input
+                  type="color"
+                  value={categoryFormData.color}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, color: e.target.value })}
+                  className="w-full h-12 border border-gray-300 rounded-lg"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50 flex gap-3">
+              <button
+                onClick={() => setShowCategoryEditForm(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveCategory}
+                className="flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: categoryFormData.color }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Goal Creation/Edit Modal */}
       {showGoalForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Create New Goal</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {editingGoal ? 'Edit Goal' : 'Create New Goal'}
+                </h2>
                 <button
                   onClick={() => setShowGoalForm(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -442,7 +650,7 @@ export default function CategoryDetailPage() {
                 className="flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: category.color }}
               >
-                Create Goal
+                {editingGoal ? 'Update Goal' : 'Create Goal'}
               </button>
             </div>
           </div>

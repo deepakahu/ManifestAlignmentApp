@@ -97,5 +97,6 @@ export type MainTabParamList = {
   MoodTracking: undefined;
   Manifestation: undefined;
   Discipline: undefined;
+  DailyTracker: undefined;
   Profile: undefined;
 };

@@ -249,6 +249,13 @@ export function DisciplineHomeScreen({ navigation }: Props) {
         <Text style={styles.title}>Discipline Tracker</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
+            style={styles.todayButton}
+            onPress={() => navigation.navigate('DailyTracker')}
+          >
+            <MaterialIcons name="today" size={20} color="#6366f1" />
+            <Text style={styles.todayButtonText}>Today</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.headerButton}
             onPress={() => setShowArchived(!showArchived)}
           >
@@ -329,6 +336,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
+  },
+  todayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#f0f0ff',
+    borderRadius: 8,
+  },
+  todayButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6366f1',
   },
   headerButton: {
     padding: 8,
