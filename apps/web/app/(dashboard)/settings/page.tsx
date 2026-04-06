@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/layout/Header';
 import { formatDate } from '@/lib/utils';
+import { DataPrivacyActions } from '@/components/settings/DataPrivacyActions';
+import { DangerZoneActions } from '@/components/settings/DangerZoneActions';
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -107,10 +109,7 @@ export default async function SettingsPage() {
             <h2 className="text-lg font-semibold text-slate-900">Data & Privacy</h2>
           </div>
           <div className="p-6 space-y-3">
-            <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-50 transition-colors">
-              <p className="text-sm font-medium text-slate-900">Export Your Data</p>
-              <p className="text-xs text-slate-500">Download all your moods, manifestations, and alarms</p>
-            </button>
+            <DataPrivacyActions />
 
             <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-50 transition-colors">
               <p className="text-sm font-medium text-slate-900">Privacy Policy</p>
@@ -130,15 +129,7 @@ export default async function SettingsPage() {
             <h2 className="text-lg font-semibold text-red-900">Danger Zone</h2>
           </div>
           <div className="p-6 space-y-3">
-            <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors">
-              <p className="text-sm font-medium text-red-900">Delete All Data</p>
-              <p className="text-xs text-red-600">Permanently delete all your moods, manifestations, and alarms</p>
-            </button>
-
-            <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors">
-              <p className="text-sm font-medium text-red-900">Delete Account</p>
-              <p className="text-xs text-red-600">Permanently delete your account and all associated data</p>
-            </button>
+            <DangerZoneActions />
           </div>
         </div>
 
