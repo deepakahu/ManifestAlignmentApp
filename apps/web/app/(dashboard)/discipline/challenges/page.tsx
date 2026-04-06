@@ -79,7 +79,7 @@ export default function ChallengesPage() {
             .from('challenge_participants')
             .select('*', { count: 'exact', head: true })
             .eq('challenge_id', challenge.id)
-            .eq('status', 'joined');
+            .eq('status', 'accepted');
 
           // Get activity count
           const { count: activityCount } = await supabase

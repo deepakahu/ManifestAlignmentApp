@@ -106,6 +106,8 @@ CREATE TABLE public.challenges (
   is_public boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  urgency_level text CHECK (urgency_level = ANY (ARRAY['critical'::text, 'high'::text, 'medium'::text])),
+  failure_consequence text CHECK (failure_consequence = ANY (ARRAY['charity'::text, 'partner'::text, 'platform'::text, 'anti-charity'::text])),
   CONSTRAINT challenges_pkey PRIMARY KEY (id),
   CONSTRAINT challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );

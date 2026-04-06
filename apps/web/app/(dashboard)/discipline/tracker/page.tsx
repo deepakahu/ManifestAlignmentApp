@@ -487,7 +487,7 @@ export default function DailyTrackerPage() {
               .select('user_id, users!inner(email, full_name)')
               .eq('challenge_id', challengeId)
               .eq('role', 'accountability_partner')
-              .eq('status', 'joined')
+              .eq('status', 'accepted')
               .single();
 
             if (accountabilityPartner && (accountabilityPartner as any).users?.email) {

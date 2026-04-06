@@ -523,7 +523,7 @@ export function isTextLog(value: LogValue): value is TextLogValue {
 // =====================================================
 export type ChallengeStatus = 'draft' | 'active' | 'completed' | 'cancelled';
 export type ChallengeParticipantRole = 'creator' | 'participant' | 'accountability_partner';
-export type ChallengeParticipantStatus = 'invited' | 'joined' | 'declined' | 'left';
+export type ChallengeParticipantStatus = 'invited' | 'accepted' | 'declined'; // Must match DB enum
 export type ChallengeLogApprovalStatus = 'pending' | 'approved' | 'rejected';
 export type ChallengeUrgencyLevel = 'critical' | 'high' | 'medium';
 export type ChallengeFailureConsequence = 'charity' | 'partner' | 'platform' | 'anti-charity';

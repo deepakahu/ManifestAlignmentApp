@@ -115,7 +115,7 @@ export default function NewChallengePage() {
         challenge_id: challengeId,
         user_id: user.id,
         role: 'creator',
-        status: 'joined',
+        status: 'accepted', // Fixed: DB enum uses 'accepted', not 'joined'
         joined_at: new Date().toISOString(),
       });
 

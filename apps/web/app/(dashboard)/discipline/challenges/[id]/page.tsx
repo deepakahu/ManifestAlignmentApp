@@ -514,7 +514,7 @@ export default function ChallengeDetailPage() {
           <p className="text-xs md:text-sm text-gray-600 mt-1">Days Remaining</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 text-center">
-          <p className="text-3xl md:text-4xl font-bold text-gray-900">{participants.filter(p => p.status === 'joined').length}</p>
+          <p className="text-3xl md:text-4xl font-bold text-gray-900">{participants.filter(p => p.status === 'accepted').length}</p>
           <p className="text-xs md:text-sm text-gray-600 mt-1">Participants</p>
         </div>
       </div>
@@ -603,7 +603,7 @@ export default function ChallengeDetailPage() {
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Participants</h2>
 
         <div className="space-y-3">
-          {participants.filter(p => p.status === 'joined').map((participant) => (
+          {participants.filter(p => p.status === 'accepted').map((participant) => (
             <div key={participant.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
