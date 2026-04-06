@@ -22,6 +22,14 @@ import type {
   DisciplineCompetitionDB,
   CompetitionParticipant,
   CompetitionParticipantDB,
+  Challenge,
+  ChallengeDB,
+  ChallengeParticipant,
+  ChallengeParticipantDB,
+  ChallengeActivity,
+  ChallengeActivityDB,
+  ChallengeActivityLog,
+  ChallengeActivityLogDB,
 } from '../types/discipline';
 
 // =====================================================
@@ -363,5 +371,129 @@ export function participantFromDB(participantDB: CompetitionParticipantDB): Comp
     rank: participantDB.rank,
     lastUpdatedAt: new Date(participantDB.last_updated_at),
     joinedAt: new Date(participantDB.joined_at),
+  };
+}
+
+// =====================================================
+// CHALLENGE TRANSFORMERS
+// =====================================================
+
+export function challengeToDB(challenge: Partial<Challenge>): Partial<ChallengeDB> {
+  return {
+    ...(challenge.id && { id: challenge.id }),
+    ...(challenge.userId && { user_id: challenge.userId }),
+    ...(challenge.title && { title: challenge.title }),
+    ...(challenge.description !== undefined && { description: challenge.description }),
+    ...(challenge.startDate && { start_date: challenge.startDate.toISOString().split('T')[0] }),
+    ...(challenge.endDate && { end_date: challenge.endDate.toISOString().split('T')[0] }),
+    ...(challenge.status && { status: challenge.status }),
+    ...(challenge.prizeAmount !== undefined && { prize_amount: challenge.prizeAmount }),
+    ...(challenge.prizeCurrency && { prize_currency: challenge.prizeCurrency }),
+    ...(challenge.isPublic !== undefined && { is_public: challenge.isPublic }),
+    ...(challenge.createdAt && { created_at: challenge.createdAt.toISOString() }),
+    ...(challenge.updatedAt && { updated_at: challenge.updatedAt.toISOString() }),
+  };
+}
+
+export function challengeFromDB(challengeDB: ChallengeDB): Challenge {
+  return {
+    id: challengeDB.id,
+    userId: challengeDB.user_id,
+    title: challengeDB.title,
+    description: challengeDB.description ?? undefined,
+    startDate: new Date(challengeDB.start_date),
+    endDate: new Date(challengeDB.end_date),
+    status: challengeDB.status,
+    prizeAmount: challengeDB.prize_amount,
+    prizeCurrency: challengeDB.prize_currency,
+    isPublic: challengeDB.is_public,
+    createdAt: new Date(challengeDB.created_at),
+    updatedAt: new Date(challengeDB.updated_at),
+  };
+}
+
+export function challengeParticipantToDB(
+  participant: Partial<ChallengeParticipant>
+): Partial<ChallengeParticipantDB> {
+  return {
+    ...(participant.id && { id: participant.id }),
+    ...(participant.challengeId && { challenge_id: participant.challengeId }),
+    ...(participant.userId && { user_id: participant.userId }),
+    ...(participant.role && { role: participant.role }),
+    ...(participant.status && { status: participant.status }),
+    ...(participant.joinedAt !== undefined && {
+      joined_at: participant.joinedAt ? participant.joinedAt.toISOString() : null,
+    }),
+    ...(participant.createdAt && { created_at: participant.createdAt.toISOString() }),
+    ...(participant.updatedAt && { updated_at: participant.updatedAt.toISOString() }),
+  };
+}
+
+export function challengeParticipantFromDB(
+  participantDB: ChallengeParticipantDB
+): ChallengeParticipant {
+  return {
+    id: participantDB.id,
+    challengeId: participantDB.challenge_id,
+    userId: participantDB.user_id,
+    role: participantDB.role,
+    status: participantDB.status,
+    joinedAt: participantDB.joined_at ? new Date(participantDB.joined_at) : undefined,
+    createdAt: new Date(participantDB.created_at),
+    updatedAt: new Date(participantDB.updated_at),
+  };
+}
+
+export function challengeActivityToDB(
+  activity: Partial<ChallengeActivity>
+): Partial<ChallengeActivityDB> {
+  return {
+    ...(activity.id && { id: activity.id }),
+    ...(activity.challengeId && { challenge_id: activity.challengeId }),
+    ...(activity.activityId && { activity_id: activity.activityId }),
+    ...(activity.isRequired !== undefined && { is_required: activity.isRequired }),
+    ...(activity.createdAt && { created_at: activity.createdAt.toISOString() }),
+  };
+}
+
+export function challengeActivityFromDB(activityDB: ChallengeActivityDB): ChallengeActivity {
+  return {
+    id: activityDB.id,
+    challengeId: activityDB.challenge_id,
+    activityId: activityDB.activity_id,
+    isRequired: activityDB.is_required,
+    createdAt: new Date(activityDB.created_at),
+  };
+}
+
+export function challengeActivityLogToDB(
+  log: Partial<ChallengeActivityLog>
+): Partial<ChallengeActivityLogDB> {
+  return {
+    ...(log.id && { id: log.id }),
+    ...(log.challengeId && { challenge_id: log.challengeId }),
+    ...(log.activityLogId && { activity_log_id: log.activityLogId }),
+    ...(log.approvalStatus && { approval_status: log.approvalStatus }),
+    ...(log.approvedBy !== undefined && { approved_by: log.approvedBy || null }),
+    ...(log.approvedAt !== undefined && {
+      approved_at: log.approvedAt ? log.approvedAt.toISOString() : null,
+    }),
+    ...(log.rejectionReason !== undefined && { rejection_reason: log.rejectionReason }),
+    ...(log.createdAt && { created_at: log.createdAt.toISOString() }),
+    ...(log.updatedAt && { updated_at: log.updatedAt.toISOString() }),
+  };
+}
+
+export function challengeActivityLogFromDB(logDB: ChallengeActivityLogDB): ChallengeActivityLog {
+  return {
+    id: logDB.id,
+    challengeId: logDB.challenge_id,
+    activityLogId: logDB.activity_log_id,
+    approvalStatus: logDB.approval_status,
+    approvedBy: logDB.approved_by ?? undefined,
+    approvedAt: logDB.approved_at ? new Date(logDB.approved_at) : undefined,
+    rejectionReason: logDB.rejection_reason ?? undefined,
+    createdAt: new Date(logDB.created_at),
+    updatedAt: new Date(logDB.updated_at),
   };
 }

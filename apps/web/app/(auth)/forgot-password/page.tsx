@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { passwordResetOptions } from '@/lib/auth/config';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -16,9 +17,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
-    });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, passwordResetOptions);
 
     if (error) {
       setError(error.message);

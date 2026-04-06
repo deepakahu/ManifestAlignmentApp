@@ -20,8 +20,8 @@ export function Header({ title }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
-      <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
+    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8">
+      <h1 className="text-lg md:text-xl font-semibold text-slate-900 truncate mr-4">{title}</h1>
 
       <div className="relative">
         <button

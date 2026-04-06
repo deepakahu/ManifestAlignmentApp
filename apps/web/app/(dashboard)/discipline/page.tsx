@@ -105,36 +105,37 @@ export default function DisciplinePage() {
     : categories.filter(c => !c.isArchived);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Discipline Tracker</h1>
-          <p className="mt-1 text-gray-600">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Discipline Tracker</h1>
+          <p className="mt-1 text-sm md:text-base text-gray-600">
             Track your daily habits and achieve your goals
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 md:gap-3">
           <button
             onClick={() => router.push('/discipline/tracker')}
-            className="px-4 py-2 text-indigo-700 bg-indigo-50 border border-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors font-medium flex items-center gap-2"
+            className="px-3 md:px-4 py-2 text-sm md:text-base text-indigo-700 bg-indigo-50 border border-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors font-medium flex items-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            Today
+            <span className="hidden sm:inline">Today</span>
+            <span className="sm:hidden">📅</span>
           </button>
           <button
             onClick={() => setShowArchived(!showArchived)}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-3 md:px-4 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
           >
-            {showArchived ? 'Hide Archived' : 'Show Archived'}
+            {showArchived ? 'Hide' : 'Show'} <span className="hidden sm:inline">Archived</span>
           </button>
           <button
             onClick={handleManageCategories}
-            className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+            className="px-3 md:px-4 py-2 text-sm md:text-base text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap"
           >
-            Manage Categories
+            <span className="hidden sm:inline">Manage </span>Categories
           </button>
         </div>
       </div>

@@ -109,7 +109,7 @@ export default async function DashboardPage() {
     <div>
       <Header title="Dashboard" />
 
-      <div className="p-8">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-slate-900 mb-2">

@@ -517,3 +517,145 @@ export function isMultiSelectLog(value: LogValue): value is MultiSelectLogValue 
 export function isTextLog(value: LogValue): value is TextLogValue {
   return 'text' in value && typeof value.text === 'string';
 }
+
+// =====================================================
+// CHALLENGES & ACCOUNTABILITY
+// =====================================================
+export type ChallengeStatus = 'draft' | 'active' | 'completed' | 'cancelled';
+export type ChallengeParticipantRole = 'creator' | 'participant' | 'accountability_partner';
+export type ChallengeParticipantStatus = 'invited' | 'joined' | 'declined' | 'left';
+export type ChallengeLogApprovalStatus = 'pending' | 'approved' | 'rejected';
+export type ChallengeUrgencyLevel = 'critical' | 'high' | 'medium';
+export type ChallengeFailureConsequence = 'charity' | 'partner' | 'platform' | 'anti-charity';
+
+export interface Challenge {
+  id: string;
+  userId: string;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  status: ChallengeStatus;
+  prizeAmount: number;
+  prizeCurrency: string;
+  isPublic: boolean;
+  urgencyLevel?: ChallengeUrgencyLevel;
+  failureConsequence?: ChallengeFailureConsequence;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ChallengeDB {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string | null;
+  start_date: string;
+  end_date: string;
+  status: ChallengeStatus;
+  prize_amount: number;
+  prize_currency: string;
+  is_public: boolean;
+  urgency_level?: ChallengeUrgencyLevel | null;
+  failure_consequence?: ChallengeFailureConsequence | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChallengeParticipant {
+  id: string;
+  challengeId: string;
+  userId: string;
+  role: ChallengeParticipantRole;
+  status: ChallengeParticipantStatus;
+  joinedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ChallengeParticipantDB {
+  id: string;
+  challenge_id: string;
+  user_id: string;
+  role: ChallengeParticipantRole;
+  status: ChallengeParticipantStatus;
+  joined_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChallengeActivity {
+  id: string;
+  challengeId: string;
+  activityId: string;
+  isRequired: boolean;
+  createdAt: Date;
+}
+
+export interface ChallengeActivityDB {
+  id: string;
+  challenge_id: string;
+  activity_id: string;
+  is_required: boolean;
+  created_at: string;
+}
+
+export interface ChallengeActivityLog {
+  id: string;
+  challengeId: string;
+  activityLogId: string;
+  approvalStatus: ChallengeLogApprovalStatus;
+  approvedBy?: string;
+  approvedAt?: Date;
+  rejectionReason?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ChallengeActivityLogDB {
+  id: string;
+  challenge_id: string;
+  activity_log_id: string;
+  approval_status: ChallengeLogApprovalStatus;
+  approved_by?: string | null;
+  approved_at?: string | null;
+  rejection_reason?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Challenge with populated data
+export interface ChallengeWithParticipants extends Challenge {
+  participants: ChallengeParticipant[];
+  activities: ChallengeActivity[];
+  creator?: {
+    id: string;
+    displayName?: string;
+    email?: string;
+  };
+}
+
+export interface ChallengeStats {
+  totalActivities: number;
+  completedActivities: number;
+  pendingApprovals: number;
+  approvedActivities: number;
+  rejectedActivities: number;
+  completionRate: number;
+  daysRemaining: number;
+  daysTotal: number;
+}
+
+// Form data
+export interface ChallengeFormData {
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  prizeAmount: number;
+  prizeCurrency: string;
+  isPublic: boolean;
+  selectedActivityIds: string[];
+  participantEmails: string[];
+  accountabilityPartnerEmail?: string;
+}

@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { DisciplineActivity, ActivityLog, Goal, Category } from '@manifestation/shared';
 import { activityFromDB, activityToDB } from '@manifestation/shared';
 import { QuickLogModal } from '@/components/discipline/tracker/QuickLogModal';
+import { sendActivityLoggedNotification } from '@/lib/mailgun';
 
 // Utility functions (copied from mobile - could be shared)
 function isDueOn(activity: DisciplineActivity, date: Date): boolean {
@@ -83,6 +84,7 @@ interface HierarchyItem {
     activities: Array<{
       activity: DisciplineActivity;
       log: ActivityLog | null;
+      challengeName?: string;
     }>;
   }>;
 }
@@ -197,9 +199,28 @@ export default function DailyTrackerPage() {
         updatedAt: new Date(cat.updated_at),
       }));
 
-      // Step 5: Build hierarchy
-      const hierarchyData = buildHierarchy(categories, goals, activitiesDueToday, logs);
+      // Step 5: Load challenge information for activities
+      const activityIds = activitiesDueToday.map(a => a.id);
+      const { data: challengeActivitiesData } = await supabase
+        .from('challenge_activities')
+        .select('activity_id, challenge_id, challenges(title, status)')
+        .in('activity_id', activityIds);
+
+      // Create a map of activity ID to active challenge name
+      const activityChallengeMap = new Map<string, string>();
+      (challengeActivitiesData || []).forEach((ca: any) => {
+        if (ca.challenges && ca.challenges.status === 'active') {
+          activityChallengeMap.set(ca.activity_id, ca.challenges.title);
+        }
+      });
+
+      // Step 6: Build hierarchy
+      const hierarchyData = buildHierarchy(categories, goals, activitiesDueToday, logs, activityChallengeMap);
       setHierarchy(hierarchyData);
+
+      // Initialize all categories as expanded by default
+      const allCategoryIds = hierarchyData.map(h => h.category.id);
+      setExpandedCategories(new Set(allCategoryIds));
 
       // Calculate stats
       const totalActivities = activitiesDueToday.length;
@@ -225,7 +246,8 @@ export default function DailyTrackerPage() {
     categories: Category[],
     goals: Goal[],
     activities: DisciplineActivity[],
-    logs: ActivityLog[]
+    logs: ActivityLog[],
+    activityChallengeMap: Map<string, string>
   ): HierarchyItem[] => {
     const categoryMap = new Map(categories.map((c) => [c.id, c]));
     const goalMap = new Map(goals.map((g) => [g.id, g]));
@@ -244,6 +266,7 @@ export default function DailyTrackerPage() {
           activities: goalActivities.map((activity) => ({
             activity,
             log: logMap.get(activity.id) || null,
+            challengeName: activityChallengeMap.get(activity.id),
           })),
         };
       });
@@ -270,6 +293,7 @@ export default function DailyTrackerPage() {
           activities: goalActivities.map((activity) => ({
             activity,
             log: logMap.get(activity.id) || null,
+            challengeName: activityChallengeMap.get(activity.id),
           })),
         };
       });
@@ -389,6 +413,65 @@ export default function DailyTrackerPage() {
       if (error) {
         console.error('Database error:', error);
         throw error;
+      }
+
+      // Check if this activity is part of any active challenges with accountability partners
+      try {
+        const { data: challengeActivities } = await supabase
+          .from('challenge_activities')
+          .select('challenge_id, challenges!inner(id, title, status)')
+          .eq('activity_id', selectedActivity.id);
+
+        if (challengeActivities && challengeActivities.length > 0) {
+          // Filter for active challenges
+          const activeChallenges = challengeActivities.filter(
+            (ca: any) => ca.challenges?.status === 'active'
+          );
+
+          // For each active challenge, check for accountability partner
+          for (const challengeActivity of activeChallenges) {
+            const challengeId = challengeActivity.challenge_id;
+
+            // Get accountability partner for this challenge
+            const { data: accountabilityPartner } = await supabase
+              .from('challenge_participants')
+              .select('user_id, users!inner(email, full_name)')
+              .eq('challenge_id', challengeId)
+              .eq('role', 'accountability_partner')
+              .eq('status', 'joined')
+              .single();
+
+            if (accountabilityPartner && (accountabilityPartner as any).users?.email) {
+              const partner = (accountabilityPartner as any).users;
+
+              // Get current user's name
+              const { data: currentUserData } = await supabase
+                .from('users')
+                .select('full_name, email')
+                .eq('id', user.id)
+                .single();
+
+              const userName = currentUserData?.full_name || currentUserData?.email?.split('@')[0] || 'A user';
+              const partnerName = partner.full_name || partner.email.split('@')[0];
+
+              // Send notification email (don't await - run in background)
+              sendActivityLoggedNotification(
+                partner.email,
+                partnerName,
+                userName,
+                (challengeActivity as any).challenges.title,
+                selectedActivity.title,
+                challengeId
+              ).catch(err => {
+                console.error('Failed to send accountability notification:', err);
+                // Don't throw - email failure shouldn't block logging
+              });
+            }
+          }
+        }
+      } catch (emailError) {
+        console.error('Error checking challenges for email notifications:', emailError);
+        // Don't throw - email failure shouldn't block logging
       }
 
       // Close modal and refresh
@@ -555,7 +638,7 @@ export default function DailyTrackerPage() {
 
                         {/* Activities */}
                         <div className="space-y-2">
-                          {goalItem.activities.map(({ activity, log }) => (
+                          {goalItem.activities.map(({ activity, log, challengeName }) => (
                             <div
                               key={activity.id}
                               className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
@@ -563,6 +646,21 @@ export default function DailyTrackerPage() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <h5 className="font-medium text-slate-900">{activity.title}</h5>
+                                  {challengeName && (
+                                    <span
+                                      className="inline-flex items-center cursor-help"
+                                      title={`Challenge: ${challengeName}`}
+                                    >
+                                      <svg
+                                        className="w-4 h-4 text-amber-600"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                      </svg>
+                                    </span>
+                                  )}
                                   <span className="text-xs px-2 py-0.5 bg-slate-200 text-slate-700 rounded">
                                     {activity.trackingType}
                                   </span>
