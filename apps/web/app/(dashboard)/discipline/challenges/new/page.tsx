@@ -1,17 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import type { DisciplineActivity, ChallengeFormData } from '@manifestation/shared';
-import { activityFromDB } from '@manifestation/shared';
+import type { ChallengeFormData } from '@manifestation/shared';
 import { PrizeExplanation } from '@/components/challenges/PrizeExplanation';
 import { sendChallengeInvitation } from '@/lib/mailgun';
+import { ActivityHierarchySelector } from '@/components/discipline/challenges/ActivityHierarchySelector';
 
 export default function NewChallengePage() {
   const router = useRouter();
-  const [activities, setActivities] = useState<DisciplineActivity[]>([]);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<ChallengeFormData>({
@@ -33,34 +31,6 @@ export default function NewChallengePage() {
 
   const [emailInput, setEmailInput] = useState('');
   const [partnerEmailInput, setPartnerEmailInput] = useState('');
-
-  useEffect(() => {
-    loadActivities();
-  }, []);
-
-  const loadActivities = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('discipline_activities')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('title', { ascending: true });
-
-      if (error) throw error;
-      setActivities((data || []).map(activityFromDB));
-    } catch (error: any) {
-      console.error('Failed to load activities:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddEmail = () => {
     if (emailInput.trim() && !formData.participantEmails.includes(emailInput.trim())) {
@@ -87,15 +57,6 @@ export default function NewChallengePage() {
       });
       setPartnerEmailInput('');
     }
-  };
-
-  const toggleActivity = (activityId: string) => {
-    setFormData({
-      ...formData,
-      selectedActivityIds: formData.selectedActivityIds.includes(activityId)
-        ? formData.selectedActivityIds.filter(id => id !== activityId)
-        : [...formData.selectedActivityIds, activityId],
-    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -222,16 +183,6 @@ export default function NewChallengePage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6 md:mb-8">
@@ -312,38 +263,12 @@ export default function NewChallengePage() {
             Choose which activities are part of this challenge
           </p>
 
-          {activities.length === 0 ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <p className="text-gray-600">No active activities found.</p>
-              <p className="text-sm text-gray-500 mt-2">Create some activities first to use them in challenges.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {activities.map((activity) => (
-                <label
-                  key={activity.id}
-                  className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.selectedActivityIds.includes(activity.id)}
-                    onChange={() => toggleActivity(activity.id)}
-                    className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                  />
-                  <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    {activity.description && (
-                      <p className="text-xs text-gray-500">{activity.description}</p>
-                    )}
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
-
-          <p className="mt-4 text-sm text-gray-600">
-            {formData.selectedActivityIds.length} activit{formData.selectedActivityIds.length === 1 ? 'y' : 'ies'} selected
-          </p>
+          <ActivityHierarchySelector
+            selectedActivityIds={formData.selectedActivityIds}
+            onSelectionChange={(activityIds) => {
+              setFormData(prev => ({ ...prev, selectedActivityIds: activityIds }));
+            }}
+          />
         </div>
 
         {/* Stakes / Prize */}

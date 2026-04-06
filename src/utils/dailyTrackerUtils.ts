@@ -49,14 +49,8 @@ export interface DailyTrackerHierarchy {
     activities: Array<{
       activity: DisciplineActivity;
       log: ActivityLog | null;
-      // Challenge context (future-ready)
-      challengeCount?: number; // Number of challenges this activity is part of
-      challengeStatuses?: Array<{
-        challengeId: string;
-        challengeName: string;
-        challengeShortname: string;
-        status: 'pending' | 'approved' | 'rejected' | 'not_submitted';
-      }>;
+      // Challenge context
+      challengeNames?: string[]; // Names of active challenges this activity is part of
     }>;
   }>;
 }
@@ -70,6 +64,7 @@ export interface DailyTrackerHierarchy {
  * @param activities - Activities due on the selected date
  * @param logs - Activity logs for the selected date
  * @param expandedCategories - Set of category IDs that should be expanded
+ * @param activityChallengeMap - Optional map of activity IDs to challenge names
  * @returns Hierarchical structure ready for display
  */
 export function buildDailyHierarchy(
@@ -77,7 +72,8 @@ export function buildDailyHierarchy(
   goals: Goal[],
   activities: DisciplineActivity[],
   logs: ActivityLog[],
-  expandedCategories: Set<string> = new Set()
+  expandedCategories: Set<string> = new Set(),
+  activityChallengeMap?: Map<string, string[]>
 ): DailyTrackerHierarchy[] {
   // Create lookup maps for efficiency
   const logsByActivityId = new Map<string, ActivityLog>();
@@ -122,9 +118,7 @@ export function buildDailyHierarchy(
           activities: sortedActivities.map(activity => ({
             activity,
             log: logsByActivityId.get(activity.id) || null,
-            // Challenge data will be populated when Challenge System is implemented
-            challengeCount: 0,
-            challengeStatuses: [],
+            challengeNames: activityChallengeMap?.get(activity.id),
           })),
         };
       })
@@ -153,8 +147,7 @@ export function buildDailyHierarchy(
         activities: sortedActivities.map(activity => ({
           activity,
           log: logsByActivityId.get(activity.id) || null,
-          challengeCount: 0,
-          challengeStatuses: [],
+          challengeNames: activityChallengeMap?.get(activity.id),
         })),
       };
     })

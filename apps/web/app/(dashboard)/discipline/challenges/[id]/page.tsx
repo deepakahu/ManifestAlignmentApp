@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { Challenge, ChallengeParticipant, DisciplineActivity, ActivityLog } from '@manifestation/shared';
 import { activityFromDB, activityLogFromDB } from '@manifestation/shared';
 import Link from 'next/link';
+import { QuickLogModal } from '@/components/discipline/tracker/QuickLogModal';
 
 interface ChallengeData {
   challenge: Challenge;
@@ -34,6 +35,11 @@ export default function ChallengeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [activating, setActivating] = useState(false);
+
+  // Quick log modal state
+  const [showLogModal, setShowLogModal] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<DisciplineActivity | null>(null);
+  const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
 
   useEffect(() => {
     loadChallengeData();
@@ -246,6 +252,105 @@ export default function ChallengeDetailPage() {
     return totalExpected > 0 ? Math.round((totalApproved / totalExpected) * 100) : 0;
   };
 
+  const handleOpenLogModal = async (activity: DisciplineActivity) => {
+    setSelectedActivity(activity);
+
+    // Load existing log for today if any
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const { data: logData } = await supabase
+      .from('activity_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('activity_id', activity.id)
+      .eq('log_date', today)
+      .single();
+
+    setSelectedLog(logData ? activityLogFromDB(logData) : null);
+    setShowLogModal(true);
+  };
+
+  const handleLogSubmit = async (log: Partial<ActivityLog>) => {
+    if (!selectedActivity) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    const logData = {
+      user_id: user.id,
+      activity_id: selectedActivity.id,
+      log_date: dateStr,
+      value: log.value,
+      status: log.status || 'good',
+      notes: log.notes || null,
+    };
+
+    // Check if log already exists
+    const { data: existingLogs } = await supabase
+      .from('activity_logs')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('activity_id', selectedActivity.id)
+      .eq('log_date', dateStr)
+      .limit(1);
+
+    let activityLogId: string;
+
+    if (existingLogs && existingLogs.length > 0) {
+      // Update existing log
+      const result = await supabase
+        .from('activity_logs')
+        .update(logData)
+        .eq('id', existingLogs[0].id)
+        .select('id')
+        .single();
+      if (result.error) throw result.error;
+      activityLogId = result.data.id;
+    } else {
+      // Insert new log
+      const result = await supabase
+        .from('activity_logs')
+        .insert(logData)
+        .select('id')
+        .single();
+      if (result.error) throw result.error;
+      activityLogId = result.data.id;
+    }
+
+    // Create challenge_activity_logs entry
+    const { data: challengeActivities } = await supabase
+      .from('challenge_activities')
+      .select('challenge_id, challenges!inner(id, status)')
+      .eq('activity_id', selectedActivity.id)
+      .eq('challenges.status', 'active');
+
+    if (challengeActivities && challengeActivities.length > 0) {
+      const challengeLogInserts = challengeActivities.map((ca: any) => ({
+        challenge_id: ca.challenge_id,
+        activity_log_id: activityLogId,
+        approval_status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }));
+
+      await (supabase as any)
+        .from('challenge_activity_logs')
+        .upsert(challengeLogInserts, {
+          onConflict: 'challenge_id,activity_log_id'
+        });
+    }
+
+    // Close modal and refresh
+    setShowLogModal(false);
+    setSelectedActivity(null);
+    setSelectedLog(null);
+    await loadChallengeData();
+  };
+
   const handleActivateChallenge = async () => {
     if (!data) return;
 
@@ -308,17 +413,17 @@ export default function ChallengeDetailPage() {
             )}
           </div>
           <div className="flex flex-wrap gap-2 md:gap-3">
-            {/* Track Activities Button - Show for active challenges */}
+            {/* View Daily Tracker Button - Show for active challenges */}
             {challenge.status === 'active' && (
               <Link
                 href="/discipline/tracker"
-                className="px-3 md:px-4 py-2 text-sm md:text-base text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                className="px-3 md:px-4 py-2 text-sm md:text-base text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-2 whitespace-nowrap border border-indigo-200"
               >
                 <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="hidden sm:inline">Track Activities</span>
-                <span className="sm:hidden">Track</span>
+                <span className="hidden sm:inline">View Daily Tracker</span>
+                <span className="sm:hidden">Tracker</span>
               </Link>
             )}
             {/* Activate Button - Only show for draft challenges created by user */}
@@ -440,8 +545,20 @@ export default function ChallengeDetailPage() {
             return (
               <div key={activity.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">{activity.title}</h3>
-                  <span className="text-2xl font-bold text-indigo-600">{activityCompletionRate}%</span>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{activity.title}</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-indigo-600">{activityCompletionRate}%</span>
+                    {data.challenge.status === 'active' && (
+                      <button
+                        onClick={() => handleOpenLogModal(activity)}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                      >
+                        Log Today
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Progress Bar */}
@@ -512,6 +629,19 @@ export default function ChallengeDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* Quick Log Modal */}
+      <QuickLogModal
+        isOpen={showLogModal}
+        activity={selectedActivity}
+        existingLog={selectedLog}
+        onClose={() => {
+          setShowLogModal(false);
+          setSelectedActivity(null);
+          setSelectedLog(null);
+        }}
+        onSubmit={handleLogSubmit}
+      />
     </div>
   );
 }

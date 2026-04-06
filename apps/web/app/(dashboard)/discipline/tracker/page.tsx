@@ -84,7 +84,7 @@ interface HierarchyItem {
     activities: Array<{
       activity: DisciplineActivity;
       log: ActivityLog | null;
-      challengeName?: string;
+      challengeNames?: string[];
     }>;
   }>;
 }
@@ -206,11 +206,12 @@ export default function DailyTrackerPage() {
         .select('activity_id, challenge_id, challenges(title, status)')
         .in('activity_id', activityIds);
 
-      // Create a map of activity ID to active challenge name
-      const activityChallengeMap = new Map<string, string>();
+      // Create a map of activity ID to active challenge names (supports multiple challenges)
+      const activityChallengeMap = new Map<string, string[]>();
       (challengeActivitiesData || []).forEach((ca: any) => {
         if (ca.challenges && ca.challenges.status === 'active') {
-          activityChallengeMap.set(ca.activity_id, ca.challenges.title);
+          const existingChallenges = activityChallengeMap.get(ca.activity_id) || [];
+          activityChallengeMap.set(ca.activity_id, [...existingChallenges, ca.challenges.title]);
         }
       });
 
@@ -247,7 +248,7 @@ export default function DailyTrackerPage() {
     goals: Goal[],
     activities: DisciplineActivity[],
     logs: ActivityLog[],
-    activityChallengeMap: Map<string, string>
+    activityChallengeMap: Map<string, string[]>
   ): HierarchyItem[] => {
     const categoryMap = new Map(categories.map((c) => [c.id, c]));
     const goalMap = new Map(goals.map((g) => [g.id, g]));
@@ -266,7 +267,7 @@ export default function DailyTrackerPage() {
           activities: goalActivities.map((activity) => ({
             activity,
             log: logMap.get(activity.id) || null,
-            challengeName: activityChallengeMap.get(activity.id),
+            challengeNames: activityChallengeMap.get(activity.id),
           })),
         };
       });
@@ -293,7 +294,7 @@ export default function DailyTrackerPage() {
           activities: goalActivities.map((activity) => ({
             activity,
             log: logMap.get(activity.id) || null,
-            challengeName: activityChallengeMap.get(activity.id),
+            challengeNames: activityChallengeMap.get(activity.id),
           })),
         };
       });
@@ -393,26 +394,74 @@ export default function DailyTrackerPage() {
       console.log('Saving log:', logData);
 
       let error;
+      let activityLogId: string;
+
       if (existingLogs && existingLogs.length > 0) {
         // Update existing log
         console.log('Updating existing log:', existingLogs[0].id);
+        activityLogId = existingLogs[0].id;
         const result = await supabase
           .from('activity_logs')
           .update(logData)
-          .eq('id', existingLogs[0].id);
+          .eq('id', existingLogs[0].id)
+          .select('id')
+          .single();
         error = result.error;
         console.log('Update result:', { error, data: result.data });
       } else {
         // Insert new log
         console.log('Inserting new log');
-        const result = await supabase.from('activity_logs').insert(logData);
+        const result = await supabase
+          .from('activity_logs')
+          .insert(logData)
+          .select('id')
+          .single();
         error = result.error;
+        activityLogId = result.data?.id;
         console.log('Insert result:', { error, data: result.data });
       }
 
       if (error) {
         console.error('Database error:', error);
         throw error;
+      }
+
+      // CRITICAL FIX: Create challenge_activity_logs entries for active challenges
+      if (activityLogId) {
+        try {
+          const { data: challengeActivities } = await supabase
+            .from('challenge_activities')
+            .select('challenge_id, challenges!inner(id, status)')
+            .eq('activity_id', selectedActivity.id)
+            .eq('challenges.status', 'active');
+
+          if (challengeActivities && challengeActivities.length > 0) {
+            // Create challenge_activity_logs entries for each active challenge
+            const challengeLogInserts = challengeActivities.map((ca: any) => ({
+              challenge_id: ca.challenge_id,
+              activity_log_id: activityLogId,
+              approval_status: 'pending',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }));
+
+            const { error: challengeLogError } = await supabase
+              .from('challenge_activity_logs')
+              .upsert(challengeLogInserts, {
+                onConflict: 'challenge_id,activity_log_id'
+              });
+
+            if (challengeLogError) {
+              console.error('Failed to create challenge activity logs:', challengeLogError);
+              // Non-critical - continue with activity logging success
+            } else {
+              console.log(`Created ${challengeLogInserts.length} challenge_activity_logs entries`);
+            }
+          }
+        } catch (challengeLogError) {
+          console.error('Error creating challenge activity logs:', challengeLogError);
+          // Don't throw - this shouldn't block activity logging
+        }
       }
 
       // Check if this activity is part of any active challenges with accountability partners
@@ -638,7 +687,7 @@ export default function DailyTrackerPage() {
 
                         {/* Activities */}
                         <div className="space-y-2">
-                          {goalItem.activities.map(({ activity, log, challengeName }) => (
+                          {goalItem.activities.map(({ activity, log, challengeNames }) => (
                             <div
                               key={activity.id}
                               className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
@@ -646,20 +695,32 @@ export default function DailyTrackerPage() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <h5 className="font-medium text-slate-900">{activity.title}</h5>
-                                  {challengeName && (
-                                    <span
-                                      className="inline-flex items-center cursor-help"
-                                      title={`Challenge: ${challengeName}`}
-                                    >
-                                      <svg
-                                        className="w-4 h-4 text-amber-600"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                      </svg>
-                                    </span>
+                                  {challengeNames && challengeNames.length > 0 && (
+                                    <div className="relative group">
+                                      <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full cursor-help">
+                                        <svg
+                                          className="w-3.5 h-3.5"
+                                          fill="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                                        </svg>
+                                        {challengeNames.length > 1 && (
+                                          <span className="text-xs font-medium">{challengeNames.length}</span>
+                                        )}
+                                      </div>
+                                      {/* Tooltip */}
+                                      <div className="hidden group-hover:block absolute left-0 top-full mt-1 z-20 bg-slate-900 text-white px-3 py-2 rounded shadow-lg whitespace-nowrap">
+                                        <div className="text-xs font-semibold mb-1">
+                                          {challengeNames.length === 1 ? 'Challenge:' : 'Challenges:'}
+                                        </div>
+                                        {challengeNames.map((name, idx) => (
+                                          <div key={idx} className="text-xs">
+                                            {challengeNames.length > 1 && `${idx + 1}. `}{name}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
                                   )}
                                   <span className="text-xs px-2 py-0.5 bg-slate-200 text-slate-700 rounded">
                                     {activity.trackingType}

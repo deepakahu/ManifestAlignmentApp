@@ -28,6 +28,7 @@ import type { DisciplineActivity, ActivityLog } from '@manifestation/shared';
 import { activityRepository } from '../../repositories/ActivityRepository';
 import { goalRepository } from '../../repositories/GoalRepository';
 import { categoryRepository } from '../../repositories/CategoryRepository';
+import { supabase } from '../../services/supabase/SupabaseClient';
 import {
   buildDailyHierarchy,
   calculateCompletionStats,
@@ -120,13 +121,30 @@ export function DailyTrackerScreen({ navigation }: Props) {
         categoryIds.map(id => categoryRepository.getById(id))
       );
 
-      // Step 7: Build hierarchy
+      // Step 7: Load challenge information for activities
+      const activityIds = activities.map(a => a.id);
+      const { data: challengeActivitiesData } = await supabase
+        .from('challenge_activities')
+        .select('activity_id, challenge_id, challenges(title, status)')
+        .in('activity_id', activityIds);
+
+      // Create a map of activity ID to active challenge names (supports multiple challenges)
+      const activityChallengeMap = new Map<string, string[]>();
+      (challengeActivitiesData || []).forEach((ca: any) => {
+        if (ca.challenges && ca.challenges.status === 'active') {
+          const existingChallenges = activityChallengeMap.get(ca.activity_id) || [];
+          activityChallengeMap.set(ca.activity_id, [...existingChallenges, ca.challenges.title]);
+        }
+      });
+
+      // Step 8: Build hierarchy with challenge data
       const hierarchyData = buildDailyHierarchy(
         categories,
         goals,
         activities,
         logs,
-        expandedCategories
+        expandedCategories,
+        activityChallengeMap
       );
 
       setHierarchy(hierarchyData);
@@ -353,11 +371,32 @@ export function DailyTrackerScreen({ navigation }: Props) {
                           </View>
 
                           {/* Activities */}
-                          {goalSection.activities.map(({ activity, log }) => (
+                          {goalSection.activities.map(({ activity, log, challengeNames }) => (
                             <View key={activity.id} style={styles.activityCard}>
                               {/* Activity Header */}
                               <View style={styles.activityHeader}>
-                                <Text style={styles.activityTitle}>{activity.title}</Text>
+                                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                  <Text style={styles.activityTitle}>{activity.title}</Text>
+                                  {challengeNames && challengeNames.length > 0 && (
+                                    <TouchableOpacity
+                                      onPress={() => {
+                                        Alert.alert(
+                                          challengeNames.length === 1 ? 'Challenge' : 'Challenges',
+                                          challengeNames.map((name, idx) =>
+                                            challengeNames.length > 1 ? `${idx + 1}. ${name}` : name
+                                          ).join('\n'),
+                                          [{ text: 'OK' }]
+                                        );
+                                      }}
+                                      style={styles.challengeBadge}
+                                    >
+                                      <MaterialIcons name="emoji-events" size={14} color="#9333ea" />
+                                      {challengeNames.length > 1 && (
+                                        <Text style={styles.challengeCount}>{challengeNames.length}</Text>
+                                      )}
+                                    </TouchableOpacity>
+                                  )}
+                                </View>
                                 {log ? (
                                   <View style={[styles.statusBadge, styles.statusLogged]}>
                                     <MaterialIcons name="check" size={16} color="#fff" />
@@ -728,5 +767,19 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  challengeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3e8ff',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    gap: 2,
+  },
+  challengeCount: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#9333ea',
   },
 });

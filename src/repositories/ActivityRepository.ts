@@ -309,7 +309,13 @@ export class ActivityRepository {
         .single();
 
       if (error) throw error;
-      return activityLogFromDB(data);
+
+      const activityLog = activityLogFromDB(data);
+
+      // CRITICAL FIX: Create challenge_activity_logs entries for active challenges
+      await this.createChallengeActivityLogs(activityLog.id, log.activityId);
+
+      return activityLog;
     } else {
       // Create new log
       const logData = activityLogToDB({
@@ -325,7 +331,51 @@ export class ActivityRepository {
         .single();
 
       if (error) throw error;
-      return activityLogFromDB(data);
+
+      const activityLog = activityLogFromDB(data);
+
+      // CRITICAL FIX: Create challenge_activity_logs entries for active challenges
+      await this.createChallengeActivityLogs(activityLog.id, log.activityId);
+
+      return activityLog;
+    }
+  }
+
+  /**
+   * Create challenge_activity_logs entries for activities that are part of active challenges
+   * This ensures the approval workflow works correctly
+   */
+  private async createChallengeActivityLogs(activityLogId: string, activityId: string): Promise<void> {
+    try {
+      const { data: challengeActivities } = await supabase
+        .from('challenge_activities')
+        .select('challenge_id, challenges!inner(id, status)')
+        .eq('activity_id', activityId)
+        .eq('challenges.status', 'active');
+
+      if (challengeActivities && challengeActivities.length > 0) {
+        const challengeLogInserts = challengeActivities.map((ca: any) => ({
+          challenge_id: ca.challenge_id,
+          activity_log_id: activityLogId,
+          approval_status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+
+        const { error: challengeLogError } = await (supabase as any)
+          .from('challenge_activity_logs')
+          .upsert(challengeLogInserts, {
+            onConflict: 'challenge_id,activity_log_id'
+          });
+
+        if (challengeLogError) {
+          console.error('Failed to create challenge activity logs:', challengeLogError);
+          // Non-critical - don't throw
+        }
+      }
+    } catch (error) {
+      console.error('Error creating challenge activity logs:', error);
+      // Non-critical - don't throw
     }
   }
 
