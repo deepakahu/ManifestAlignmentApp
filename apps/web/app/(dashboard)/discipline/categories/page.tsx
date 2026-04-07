@@ -77,15 +77,13 @@ export default function CategoriesPage() {
         const { count: goalCount } = await supabase
           .from('goals')
           .select('*', { count: 'exact', head: true })
-          .eq('category_id', category.id)
-          .eq('is_archived', false);
+          .eq('category_id', category.id);
 
         // Count activities (through goals)
         const { data: goalsData } = await supabase
           .from('goals')
           .select('id')
-          .eq('category_id', category.id)
-          .eq('is_archived', false);
+          .eq('category_id', category.id);
 
         let activityCount = 0;
         if (goalsData && goalsData.length > 0) {
