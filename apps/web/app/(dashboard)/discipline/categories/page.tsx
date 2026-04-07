@@ -33,6 +33,7 @@ const COLOR_OPTIONS = [
 export default function CategoriesPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryCounts, setCategoryCounts] = useState<Map<string, { goalCount: number; activityCount: number }>>(new Map());
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -65,7 +66,45 @@ export default function CategoriesPage() {
         .order('order_index', { ascending: true });
 
       if (error) throw error;
-      setCategories(data.map(categoryFromDB));
+      const loadedCategories = data.map(categoryFromDB);
+      setCategories(loadedCategories);
+
+      // Load counts for each category
+      const countsMap = new Map<string, { goalCount: number; activityCount: number }>();
+
+      for (const category of loadedCategories) {
+        // Count goals
+        const { count: goalCount } = await supabase
+          .from('goals')
+          .select('*', { count: 'exact', head: true })
+          .eq('category_id', category.id)
+          .eq('is_archived', false);
+
+        // Count activities (through goals)
+        const { data: goalsData } = await supabase
+          .from('goals')
+          .select('id')
+          .eq('category_id', category.id)
+          .eq('is_archived', false);
+
+        let activityCount = 0;
+        if (goalsData && goalsData.length > 0) {
+          const goalIds = goalsData.map(g => g.id);
+          const { count } = await supabase
+            .from('discipline_activities')
+            .select('*', { count: 'exact', head: true })
+            .in('goal_id', goalIds)
+            .eq('is_active', true);
+          activityCount = count || 0;
+        }
+
+        countsMap.set(category.id, {
+          goalCount: goalCount || 0,
+          activityCount
+        });
+      }
+
+      setCategoryCounts(countsMap);
     } catch (error: any) {
       console.error('Failed to load categories:', error);
     } finally {
@@ -288,14 +327,19 @@ export default function CategoriesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activeCategories.map(category => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                onEdit={handleEdit}
-                onArchive={handleArchive}
-              />
-            ))}
+            {activeCategories.map(category => {
+              const counts = categoryCounts.get(category.id) || { goalCount: 0, activityCount: 0 };
+              return (
+                <CategoryCard
+                  key={category.id}
+                  category={category}
+                  goalCount={counts.goalCount}
+                  activityCount={counts.activityCount}
+                  onEdit={handleEdit}
+                  onArchive={handleArchive}
+                />
+              );
+            })}
           </div>
         )}
       </div>
