@@ -105,6 +105,7 @@ export default function CategoriesPage() {
       }
 
       setCategoryCounts(countsMap);
+      console.log('✅ Loaded category counts:', Array.from(countsMap.entries()));
     } catch (error: any) {
       console.error('Failed to load categories:', error);
     } finally {
@@ -329,6 +330,7 @@ export default function CategoriesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {activeCategories.map(category => {
               const counts = categoryCounts.get(category.id) || { goalCount: 0, activityCount: 0 };
+              console.log(`📊 Category "${category.name}":`, counts);
               return (
                 <CategoryCard
                   key={category.id}
@@ -351,14 +353,19 @@ export default function CategoriesPage() {
             Archived Categories ({archivedCategories.length})
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {archivedCategories.map(category => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                onRestore={handleRestore}
-                onDelete={handleDelete}
-              />
-            ))}
+            {archivedCategories.map(category => {
+              const counts = categoryCounts.get(category.id) || { goalCount: 0, activityCount: 0 };
+              return (
+                <CategoryCard
+                  key={category.id}
+                  category={category}
+                  goalCount={counts.goalCount}
+                  activityCount={counts.activityCount}
+                  onRestore={handleRestore}
+                  onDelete={handleDelete}
+                />
+              );
+            })}
           </div>
         </div>
       )}
