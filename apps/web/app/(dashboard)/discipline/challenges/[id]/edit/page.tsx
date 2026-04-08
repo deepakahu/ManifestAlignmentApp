@@ -61,7 +61,7 @@ export default function EditChallengePage() {
       if (challengeError) throw challengeError;
 
       // Check if user is the creator
-      if (challengeData.user_id !== user.id) {
+      if (challengeData.creator_id !== user.id) {
         setEditMessage('You can only edit challenges you created.');
         setCanEdit(false);
         setLoading(false);

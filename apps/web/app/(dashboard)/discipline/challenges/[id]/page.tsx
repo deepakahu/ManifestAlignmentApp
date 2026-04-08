@@ -65,7 +65,7 @@ export default function ChallengeDetailPage() {
       // Transform challenge data
       const challenge: Challenge = {
         id: challengeData.id,
-        userId: challengeData.user_id,
+        userId: challengeData.creator_id,
         title: challengeData.title,
         description: challengeData.description ?? undefined,
         startDate: new Date(challengeData.start_date),

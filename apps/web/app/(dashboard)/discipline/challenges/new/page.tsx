@@ -91,7 +91,7 @@ export default function NewChallengePage() {
       const { data: challengeData, error: challengeError } = await supabase
         .from('challenges')
         .insert({
-          user_id: user.id,
+          creator_id: user.id,
           title: formData.title.trim(),
           description: formData.description?.trim() || null,
           start_date: formData.startDate.toISOString().split('T')[0],

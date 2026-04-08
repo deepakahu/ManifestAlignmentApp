@@ -46,9 +46,9 @@ export default function ChallengesPage() {
         .order('created_at', { ascending: false });
 
       if (participantChallengeIds.length > 0) {
-        query = query.or(`user_id.eq.${user.id},id.in.(${participantChallengeIds.join(',')})`);
+        query = query.or(`creator_id.eq.${user.id},id.in.(${participantChallengeIds.join(',')})`);
       } else {
-        query = query.eq('user_id', user.id);
+        query = query.eq('creator_id', user.id);
       }
 
       const { data: challengesData, error: challengesError } = await query;
@@ -61,7 +61,7 @@ export default function ChallengesPage() {
           // Transform to proper Challenge type
           const challenge: Challenge = {
             id: challengeData.id,
-            userId: challengeData.user_id,
+            userId: challengeData.creator_id,
             title: challengeData.title,
             description: challengeData.description ?? undefined,
             startDate: new Date(challengeData.start_date),
