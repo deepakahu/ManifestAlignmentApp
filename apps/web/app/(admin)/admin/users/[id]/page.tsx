@@ -41,7 +41,7 @@ export default function UserDetailPage() {
 
       // Get user
       const { data: { user: authUser }, error } = await admin.auth.admin.getUserById(userId)
-      if (error) throw error
+      if (error || !authUser) throw error || new Error('User not found')
 
       // Get profile
       const { data: profile } = await admin
@@ -87,7 +87,7 @@ export default function UserDetailPage() {
         id: authUser.id,
         email: authUser.email || 'No email',
         created_at: authUser.created_at,
-        last_sign_in_at: authUser.last_sign_in_at,
+        last_sign_in_at: authUser.last_sign_in_at || null,
         is_active: profile?.is_active ?? true,
         disabled_at: profile?.disabled_at ?? null,
         disabled_by: profile?.disabled_by ?? null,

@@ -48,7 +48,7 @@ export default function AdminUsersPage() {
           id: user.id,
           email: user.email || 'No email',
           created_at: user.created_at,
-          last_sign_in_at: user.last_sign_in_at,
+          last_sign_in_at: user.last_sign_in_at || null,
           is_active: profile?.is_active ?? true,
           disabled_at: profile?.disabled_at ?? null,
         }
