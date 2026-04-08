@@ -173,8 +173,12 @@ export default function NewChallengePage() {
         });
       }
 
-      // Navigate to challenge detail page
-      router.push(`/discipline/challenges/${challengeId}`);
+      // Navigate to payment page if prize amount > 0, otherwise go to detail page
+      if (formData.prizeAmount > 0) {
+        router.push(`/discipline/challenges/${challengeId}/payment`);
+      } else {
+        router.push(`/discipline/challenges/${challengeId}`);
+      }
     } catch (error: any) {
       console.error('Failed to create challenge:', error);
       alert('Failed to create challenge: ' + error.message);
