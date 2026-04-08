@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -28,35 +27,18 @@ export default function AdminUsersPage() {
     try {
       setLoading(true)
 
-      const admin = createAdminClient()
+      // Call API route instead of directly using admin client
+      const response = await fetch('/api/admin/users')
 
-      // Get all users
-      const { data: { users: authUsers }, error } = await admin.auth.admin.listUsers()
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.statusText}`)
+      }
 
-      if (error) throw error
-
-      // Get profiles to check active status
-      const { data: profiles } = await admin
-        .from('profiles')
-        .select('user_id, is_active, disabled_at')
-
-      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || [])
-
-      const mergedUsers: User[] = authUsers.map(user => {
-        const profile = profileMap.get(user.id)
-        return {
-          id: user.id,
-          email: user.email || 'No email',
-          created_at: user.created_at,
-          last_sign_in_at: user.last_sign_in_at || null,
-          is_active: profile?.is_active ?? true,
-          disabled_at: profile?.disabled_at ?? null,
-        }
-      })
-
-      setUsers(mergedUsers)
+      const data = await response.json()
+      setUsers(data.users || [])
     } catch (error) {
       console.error('Error loading users:', error)
+      alert('Failed to load users. Check console for details.')
     } finally {
       setLoading(false)
     }

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { useParams, useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
@@ -37,61 +36,21 @@ export default function UserDetailPage() {
   const loadUserData = async () => {
     try {
       setLoading(true)
-      const admin = createAdminClient()
 
-      // Get user
-      const { data: { user: authUser }, error } = await admin.auth.admin.getUserById(userId)
-      if (error || !authUser) throw error || new Error('User not found')
+      // Call API route
+      const response = await fetch(`/api/admin/users/${userId}`)
 
-      // Get profile
-      const { data: profile } = await admin
-        .from('profiles')
-        .select('is_active, disabled_at, disabled_by')
-        .eq('user_id', userId)
-        .single()
+      if (!response.ok) {
+        throw new Error(`Failed to fetch user: ${response.statusText}`)
+      }
 
-      // Get categories
-      const { data: categoriesData } = await admin
-        .from('categories')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+      const data = await response.json()
 
-      // Get goals
-      const { data: goalsData } = await admin
-        .from('goals')
-        .select('*, category:categories(name)')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-
-      // Get activities
-      const { data: activitiesData } = await admin
-        .from('discipline_activities')
-        .select('*, goal:goals(title)')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-
-      // Get challenges
-      const { data: challengesData } = await admin
-        .from('challenges')
-        .select('*')
-        .eq('creator_id', userId)
-        .order('created_at', { ascending: false })
-
-      setCategories(categoriesData || [])
-      setGoals(goalsData || [])
-      setActivities(activitiesData || [])
-      setChallenges(challengesData || [])
-
-      setUser({
-        id: authUser.id,
-        email: authUser.email || 'No email',
-        created_at: authUser.created_at,
-        last_sign_in_at: authUser.last_sign_in_at || null,
-        is_active: profile?.is_active ?? true,
-        disabled_at: profile?.disabled_at ?? null,
-        disabled_by: profile?.disabled_by ?? null,
-      })
+      setUser(data.user)
+      setCategories(data.categories || [])
+      setGoals(data.goals || [])
+      setActivities(data.activities || [])
+      setChallenges(data.challenges || [])
     } catch (error) {
       console.error('Error loading user:', error)
       alert('Failed to load user data')
@@ -108,16 +67,19 @@ export default function UserDetailPage() {
 
     try {
       setActionLoading(true)
-      const admin = createAdminClient()
 
-      await admin
-        .from('profiles')
-        .upsert({
-          user_id: userId,
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'toggle_status',
           is_active: !user.is_active,
-          disabled_at: !user.is_active ? null : new Date().toISOString(),
-          disabled_by: !user.is_active ? null : 'admin',
-        })
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} user`)
+      }
 
       alert(`User ${action}d successfully`)
       await loadUserData()
@@ -134,19 +96,19 @@ export default function UserDetailPage() {
 
     try {
       setActionLoading(true)
-      const admin = createAdminClient()
 
-      const tableMap = {
-        categories: 'categories',
-        goals: 'goals',
-        activities: 'discipline_activities',
-        challenges: 'challenges',
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_data',
+          dataType,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete ${dataType}`)
       }
-
-      await admin
-        .from(tableMap[dataType])
-        .delete()
-        .eq(dataType === 'challenges' ? 'creator_id' : 'user_id', userId)
 
       alert(`All ${dataType} deleted successfully`)
       await loadUserData()
@@ -164,19 +126,14 @@ export default function UserDetailPage() {
 
     try {
       setActionLoading(true)
-      const admin = createAdminClient()
 
-      // Delete all user data
-      await Promise.all([
-        admin.from('categories').delete().eq('user_id', userId),
-        admin.from('goals').delete().eq('user_id', userId),
-        admin.from('discipline_activities').delete().eq('user_id', userId),
-        admin.from('challenges').delete().eq('creator_id', userId),
-        admin.from('profiles').delete().eq('user_id', userId),
-      ])
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      })
 
-      // Delete auth user
-      await admin.auth.admin.deleteUser(userId)
+      if (!response.ok) {
+        throw new Error('Failed to delete user')
+      }
 
       alert('User deleted successfully')
       router.push('/admin/users')

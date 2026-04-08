@@ -95,7 +95,7 @@ CREATE TABLE public.challenge_participants (
 );
 CREATE TABLE public.challenges (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  user_id uuid NOT NULL,
+  creator_id uuid NOT NULL,
   title text NOT NULL,
   description text,
   start_date date NOT NULL,
@@ -108,8 +108,13 @@ CREATE TABLE public.challenges (
   updated_at timestamp with time zone DEFAULT now(),
   urgency_level text CHECK (urgency_level = ANY (ARRAY['critical'::text, 'high'::text, 'medium'::text])),
   failure_consequence text CHECK (failure_consequence = ANY (ARRAY['charity'::text, 'partner'::text, 'platform'::text, 'anti-charity'::text])),
+  payment_intent_id text,
+  payment_status text CHECK (payment_status = ANY (ARRAY['pending'::text, 'paid'::text, 'failed'::text, 'canceled'::text, 'refunded'::text])),
+  started_at timestamp with time zone,
+  completed_at timestamp with time zone,
+  failed_at timestamp with time zone,
   CONSTRAINT challenges_pkey PRIMARY KEY (id),
-  CONSTRAINT challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT challenges_user_id_fkey FOREIGN KEY (creator_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.competition_participants (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -266,6 +271,20 @@ CREATE TABLE public.mood_entries (
   CONSTRAINT mood_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
   CONSTRAINT mood_entries_alarm_id_fkey FOREIGN KEY (alarm_id) REFERENCES public.alarms(id)
 );
+CREATE TABLE public.payment_transactions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  challenge_id uuid NOT NULL,
+  payment_intent_id text NOT NULL,
+  amount integer NOT NULL,
+  platform_fee integer,
+  currency text NOT NULL DEFAULT 'USD'::text,
+  status text NOT NULL CHECK (status = ANY (ARRAY['pending'::text, 'paid'::text, 'refunded'::text, 'transferred'::text])),
+  transfer_id text,
+  completed_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT payment_transactions_pkey PRIMARY KEY (id),
+  CONSTRAINT payment_transactions_challenge_id_fkey FOREIGN KEY (challenge_id) REFERENCES public.challenges(id)
+);
 CREATE TABLE public.profiles (
   id uuid NOT NULL,
   display_name text,
@@ -292,6 +311,7 @@ CREATE TABLE public.profiles (
   last_seen_at timestamp with time zone,
   subscription_tier text DEFAULT 'free'::text CHECK (subscription_tier = ANY (ARRAY['free'::text, 'pro'::text])),
   subscription_expires_at timestamp with time zone,
+  is_admin boolean DEFAULT false,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
