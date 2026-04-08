@@ -256,6 +256,13 @@ export function DisciplineHomeScreen({ navigation }: Props) {
             <Text style={styles.todayButtonText}>Today</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            style={styles.challengesButton}
+            onPress={() => navigation.navigate('ChallengesList')}
+          >
+            <MaterialIcons name="emoji-events" size={20} color="#10b981" />
+            <Text style={styles.challengesButtonText}>Challenges</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.headerButton}
             onPress={() => setShowArchived(!showArchived)}
           >
@@ -350,6 +357,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#6366f1',
+  },
+  challengesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#d1fae5',
+    borderRadius: 8,
+  },
+  challengesButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10b981',
   },
   headerButton: {
     padding: 8,

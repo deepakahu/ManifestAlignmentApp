@@ -50,7 +50,7 @@ export interface DailyTrackerHierarchy {
       activity: DisciplineActivity;
       log: ActivityLog | null;
       // Challenge context
-      challengeNames?: string[]; // Names of active challenges this activity is part of
+      challenges?: Array<{ id: string; title: string }>; // Active challenges this activity is part of
     }>;
   }>;
 }
@@ -64,7 +64,7 @@ export interface DailyTrackerHierarchy {
  * @param activities - Activities due on the selected date
  * @param logs - Activity logs for the selected date
  * @param expandedCategories - Set of category IDs that should be expanded
- * @param activityChallengeMap - Optional map of activity IDs to challenge names
+ * @param activityChallengeMap - Optional map of activity IDs to challenge data
  * @returns Hierarchical structure ready for display
  */
 export function buildDailyHierarchy(
@@ -73,7 +73,7 @@ export function buildDailyHierarchy(
   activities: DisciplineActivity[],
   logs: ActivityLog[],
   expandedCategories: Set<string> = new Set(),
-  activityChallengeMap?: Map<string, string[]>
+  activityChallengeMap?: Map<string, Array<{ id: string; title: string }>>
 ): DailyTrackerHierarchy[] {
   // Create lookup maps for efficiency
   const logsByActivityId = new Map<string, ActivityLog>();
@@ -118,7 +118,7 @@ export function buildDailyHierarchy(
           activities: sortedActivities.map(activity => ({
             activity,
             log: logsByActivityId.get(activity.id) || null,
-            challengeNames: activityChallengeMap?.get(activity.id),
+            challenges: activityChallengeMap?.get(activity.id),
           })),
         };
       })

@@ -125,15 +125,18 @@ export function DailyTrackerScreen({ navigation }: Props) {
       const activityIds = activities.map(a => a.id);
       const { data: challengeActivitiesData } = await supabase
         .from('challenge_activities')
-        .select('activity_id, challenge_id, challenges(title, status)')
+        .select('activity_id, challenge_id, challenges(id, title, status)')
         .in('activity_id', activityIds);
 
-      // Create a map of activity ID to active challenge names (supports multiple challenges)
-      const activityChallengeMap = new Map<string, string[]>();
+      // Create a map of activity ID to active challenges (supports multiple challenges)
+      const activityChallengeMap = new Map<string, Array<{ id: string; title: string }>>();
       (challengeActivitiesData || []).forEach((ca: any) => {
         if (ca.challenges && ca.challenges.status === 'active') {
           const existingChallenges = activityChallengeMap.get(ca.activity_id) || [];
-          activityChallengeMap.set(ca.activity_id, [...existingChallenges, ca.challenges.title]);
+          activityChallengeMap.set(ca.activity_id, [
+            ...existingChallenges,
+            { id: ca.challenges.id, title: ca.challenges.title }
+          ]);
         }
       });
 
@@ -371,28 +374,38 @@ export function DailyTrackerScreen({ navigation }: Props) {
                           </View>
 
                           {/* Activities */}
-                          {goalSection.activities.map(({ activity, log, challengeNames }) => (
+                          {goalSection.activities.map(({ activity, log, challenges }) => (
                             <View key={activity.id} style={styles.activityCard}>
                               {/* Activity Header */}
                               <View style={styles.activityHeader}>
                                 <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                   <Text style={styles.activityTitle}>{activity.title}</Text>
-                                  {challengeNames && challengeNames.length > 0 && (
+                                  {challenges && challenges.length > 0 && (
                                     <TouchableOpacity
                                       onPress={() => {
-                                        Alert.alert(
-                                          challengeNames.length === 1 ? 'Challenge' : 'Challenges',
-                                          challengeNames.map((name, idx) =>
-                                            challengeNames.length > 1 ? `${idx + 1}. ${name}` : name
-                                          ).join('\n'),
-                                          [{ text: 'OK' }]
-                                        );
+                                        if (challenges.length === 1) {
+                                          // Navigate directly to the challenge
+                                          navigation.navigate('ChallengeDetail', { challengeId: challenges[0].id });
+                                        } else {
+                                          // Show selection menu for multiple challenges
+                                          Alert.alert(
+                                            'Select Challenge',
+                                            'This activity is part of multiple challenges. Which one would you like to view?',
+                                            [
+                                              ...challenges.map((challenge, idx) => ({
+                                                text: `${idx + 1}. ${challenge.title}`,
+                                                onPress: () => navigation.navigate('ChallengeDetail', { challengeId: challenge.id }),
+                                              })),
+                                              { text: 'Cancel', style: 'cancel' },
+                                            ]
+                                          );
+                                        }
                                       }}
                                       style={styles.challengeBadge}
                                     >
                                       <MaterialIcons name="emoji-events" size={14} color="#9333ea" />
-                                      {challengeNames.length > 1 && (
-                                        <Text style={styles.challengeCount}>{challengeNames.length}</Text>
+                                      {challenges.length > 1 && (
+                                        <Text style={styles.challengeCount}>{challenges.length}</Text>
                                       )}
                                     </TouchableOpacity>
                                   )}
