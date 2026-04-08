@@ -90,6 +90,12 @@ export type RootStackParamList = {
   DisciplineHome: undefined;
   CategoryDetail: { categoryId: string };
   GoalDetail: { goalId: string };
+  // Challenge screens
+  ChallengesList: undefined;
+  CreateChallenge: undefined;
+  EditChallenge: { challengeId: string };
+  ChallengeDetail: { challengeId: string };
+  Approvals: { challengeId: string };
 };
 
 export type MainTabParamList = {

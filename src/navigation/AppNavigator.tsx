@@ -45,6 +45,10 @@ import {DisciplineHomeScreen} from '../screens/Discipline/DisciplineHomeScreen';
 import {CategoryDetailScreen} from '../screens/Discipline/CategoryDetailScreen';
 import {GoalDetailScreen} from '../screens/Discipline/GoalDetailScreen';
 import {DailyTrackerScreen} from '../screens/Discipline/DailyTrackerScreen';
+import ChallengesListScreen from '../screens/Discipline/Challenges/ChallengesListScreen';
+import CreateChallengeScreen from '../screens/Discipline/Challenges/CreateChallengeScreen';
+import ChallengeDetailScreen from '../screens/Discipline/Challenges/ChallengeDetailScreen';
+import ApprovalsScreen from '../screens/Discipline/Challenges/ApprovalsScreen';
 
 import {RootStackParamList, MainTabParamList} from '../types';
 
@@ -154,6 +158,11 @@ const AppNavigator = () => {
         DisciplineHome: 'discipline',
         CategoryDetail: 'discipline/category/:categoryId',
         GoalDetail: 'discipline/goal/:goalId',
+        ChallengesList: 'discipline/challenges',
+        CreateChallenge: 'discipline/challenges/new',
+        EditChallenge: 'discipline/challenges/edit/:challengeId',
+        ChallengeDetail: 'discipline/challenges/:challengeId',
+        Approvals: 'discipline/challenges/:challengeId/approvals',
       },
     },
   };
@@ -220,6 +229,10 @@ const AppNavigator = () => {
             <Stack.Screen name="DisciplineHome" component={DisciplineHomeScreen} />
             <Stack.Screen name="CategoryDetail" component={CategoryDetailScreen} />
             <Stack.Screen name="GoalDetail" component={GoalDetailScreen} />
+            <Stack.Screen name="ChallengesList" component={ChallengesListScreen} />
+            <Stack.Screen name="CreateChallenge" component={CreateChallengeScreen} />
+            <Stack.Screen name="ChallengeDetail" component={ChallengeDetailScreen} />
+            <Stack.Screen name="Approvals" component={ApprovalsScreen} />
           </>
         )}
       </Stack.Navigator>
