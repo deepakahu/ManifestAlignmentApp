@@ -4,6 +4,62 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 
+// Deletes all user data in FK-safe order.
+// challenges.creator_id (not user_id), and child tables must precede parents.
+async function deleteAllUserData(userId: string): Promise<void> {
+  // Fetch IDs needed to clean up junction tables that lack a direct user_id column.
+  const [{ data: challengeRows }, { data: activityLogRows }, { data: activityRows }] =
+    await Promise.all([
+      supabase.from('challenges').select('id').eq('creator_id', userId),
+      supabase.from('activity_logs').select('id').eq('user_id', userId),
+      supabase.from('discipline_activities').select('id').eq('user_id', userId),
+    ]);
+
+  const challengeIds = challengeRows?.map((r) => r.id) ?? [];
+  const activityLogIds = activityLogRows?.map((r) => r.id) ?? [];
+  const activityIds = activityRows?.map((r) => r.id) ?? [];
+
+  // 1. challenge_activity_logs — references both challenges and activity_logs.
+  //    Delete where user created the challenge OR submitted the log.
+  if (challengeIds.length > 0) {
+    await supabase.from('challenge_activity_logs').delete().in('challenge_id', challengeIds);
+  }
+  if (activityLogIds.length > 0) {
+    await supabase.from('challenge_activity_logs').delete().in('activity_log_id', activityLogIds);
+  }
+
+  // 2. challenge_activities — references challenges and discipline_activities.
+  if (challengeIds.length > 0) {
+    await supabase.from('challenge_activities').delete().in('challenge_id', challengeIds);
+  }
+  // Also cover activities used in other users' challenges.
+  if (activityIds.length > 0) {
+    await supabase.from('challenge_activities').delete().in('activity_id', activityIds);
+  }
+
+  // 3. challenge_participants — user's participation in any challenge.
+  await supabase.from('challenge_participants').delete().eq('user_id', userId);
+
+  // 4. challenges — uses creator_id, not user_id.
+  await supabase.from('challenges').delete().eq('creator_id', userId);
+
+  // 5. activity_logs — now safe (challenge_activity_logs removed above).
+  await supabase.from('activity_logs').delete().eq('user_id', userId);
+
+  // 6. discipline_activities — now safe (challenge_activities removed above).
+  //    References goals, so must precede goals.
+  await supabase.from('discipline_activities').delete().eq('user_id', userId);
+
+  // 7. Everything else — no remaining FK dependencies between these.
+  await Promise.all([
+    supabase.from('manifestation_entries').delete().eq('user_id', userId),
+    supabase.from('manifestation_read_history').delete().eq('user_id', userId),
+    supabase.from('mood_entries').delete().eq('user_id', userId),
+    supabase.from('goals').delete().eq('user_id', userId),
+    supabase.from('categories').delete().eq('user_id', userId),
+  ]);
+}
+
 export function DangerZoneActions() {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
@@ -36,15 +92,7 @@ export function DangerZoneActions() {
         return;
       }
 
-      // Delete all user data (cascading deletes will handle related records)
-      await Promise.all([
-        supabase.from('activity_logs').delete().eq('user_id', user.id),
-        supabase.from('challenge_participants').delete().eq('user_id', user.id),
-        supabase.from('challenges').delete().eq('user_id', user.id),
-        supabase.from('discipline_activities').delete().eq('user_id', user.id),
-        supabase.from('goals').delete().eq('user_id', user.id),
-        supabase.from('categories').delete().eq('user_id', user.id)
-      ]);
+      await deleteAllUserData(user.id);
 
       alert('All your data has been deleted successfully.');
       router.refresh();
@@ -83,16 +131,8 @@ export function DangerZoneActions() {
         return;
       }
 
-      // First delete all user data
-      await Promise.all([
-        supabase.from('activity_logs').delete().eq('user_id', user.id),
-        supabase.from('challenge_participants').delete().eq('user_id', user.id),
-        supabase.from('challenges').delete().eq('user_id', user.id),
-        supabase.from('discipline_activities').delete().eq('user_id', user.id),
-        supabase.from('goals').delete().eq('user_id', user.id),
-        supabase.from('categories').delete().eq('user_id', user.id),
-        supabase.from('profiles').delete().eq('id', user.id)
-      ]);
+      await deleteAllUserData(user.id);
+      await supabase.from('profiles').delete().eq('id', user.id);
 
       // Delete the auth user (this requires RPC function or admin API)
       // For now, we'll sign out and show a message
